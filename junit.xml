@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="11" failures="3" errors="0" time="2.663">
+  <testsuite name="AuthController" errors="0" failures="3" skipped="0" timestamp="2025-04-07T06:28:41" time="2.549" tests="11">
+    <testcase classname="AuthController loginUser should login user successfully with correct credentials" name="AuthController loginUser should login user successfully with correct credentials" time="0.628">
+      <failure>Error: expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+Expected: &quot;password&quot;, &quot;hashedPassword&quot;
+
+Number of calls: 0
+    at Object.toHaveBeenCalledWith (C:\Users\althe\Documents\codes\SE2-KVC-Connected-1\tests\controllers\authController.test.js:130:30)</failure>
+    </testcase>
+    <testcase classname="AuthController loginUser should return 401 for incorrect CAPTCHA" name="AuthController loginUser should return 401 for incorrect CAPTCHA" time="0.12">
+    </testcase>
+    <testcase classname="AuthController loginUser should return 401 for non-existent email" name="AuthController loginUser should return 401 for non-existent email" time="0.119">
+    </testcase>
+    <testcase classname="AuthController loginUser should return 401 for incorrect password" name="AuthController loginUser should return 401 for incorrect password" time="0.123">
+      <failure>Error: expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+Expected: &quot;wrongPassword&quot;, &quot;hashedPassword&quot;
+
+Number of calls: 0
+    at Object.toHaveBeenCalledWith (C:\Users\althe\Documents\codes\SE2-KVC-Connected-1\tests\controllers\authController.test.js:205:30)</failure>
+    </testcase>
+    <testcase classname="AuthController loginUser should return 500 if UserModel.findByEmail fails" name="AuthController loginUser should return 500 if UserModel.findByEmail fails" time="0.141">
+    </testcase>
+    <testcase classname="AuthController loginUser should return 500 if bcrypt.compare fails" name="AuthController loginUser should return 500 if bcrypt.compare fails" time="0.129">
+      <failure>Error: expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+Expected: &quot;password&quot;, &quot;hashedPassword&quot;
+
+Number of calls: 0
+    at Object.toHaveBeenCalledWith (C:\Users\althe\Documents\codes\SE2-KVC-Connected-1\tests\controllers\authController.test.js:253:30)</failure>
+    </testcase>
+    <testcase classname="AuthController loginUser should return 400 when email is missing" name="AuthController loginUser should return 400 when email is missing" time="0.116">
+    </testcase>
+    <testcase classname="AuthController loginUser should return 400 when password is missing" name="AuthController loginUser should return 400 when password is missing" time="0.12">
+    </testcase>
+    <testcase classname="AuthController logoutUser should successfully logout user" name="AuthController logoutUser should successfully logout user" time="0.114">
+    </testcase>
+    <testcase classname="AuthController logoutUser should handle logout errors gracefully" name="AuthController logoutUser should handle logout errors gracefully" time="0.136">
+    </testcase>
+    <testcase classname="AuthController generateToken should generate valid JWT token" name="AuthController generateToken should generate valid JWT token" time="0.122">
+    </testcase>
+  </testsuite>
+</testsuites>

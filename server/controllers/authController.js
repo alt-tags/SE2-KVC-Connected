@@ -29,6 +29,11 @@ exports.loginUser = async (req, res) => {
     try {
         const { email, password, captchaInput } = req.body;
 
+        if (!email || !password) {
+            req.session.captcha = null; // Clear CAPTCHA
+            return res.status(400).json({ error: "Email and password are required" });
+        }
+
         // Validate CAPTCHA
         if (!req.session.captcha || captchaInput !== req.session.captcha) {
             const newCaptcha = getNewCaptchaData(req);

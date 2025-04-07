@@ -165,6 +165,7 @@ exports.changePassword = [
             const isMatch = await comparePassword(currentPassword, storedPassword);
 
             if (!isMatch) {
+                // Changed from 400 to 401 for incorrect password
                 return res.status(401).json({ error: "❌ Incorrect current password." });
             }
 
