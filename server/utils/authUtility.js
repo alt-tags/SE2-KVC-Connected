@@ -4,7 +4,7 @@ exports.generateToken = (userId, role) => {
     return jwt.sign(
         { userId, role },
         process.env.JWT_SECRET,
-        { expiresIn: "15m" } // Token expires in 15 minutes
+        { expiresIn: "30m" }
     );
 };
 
@@ -17,11 +17,10 @@ exports.authenticateToken = (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded; // Attach user info (e.g., userId, role) to the request
+        req.user = decoded;
         next();
     } catch (error) {
         if (error.name === "TokenExpiredError") {
-            // Clear the token from cookies
             res.clearCookie("token", {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === "production",

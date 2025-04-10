@@ -83,8 +83,10 @@
   margin-top: 1.5rem;
 }
 
-.cancel-button {
-  padding: 0.6rem 1.2rem;
+/* binago padding and border-radius */
+/* and cancel to cancel diagnosis*/
+.cancel-diagnosis-button {
+  padding: 0.5rem 1.5rem;
   border: 1px solid var(--orange-color);
   border-radius: 4px;
   background: white;
@@ -94,12 +96,13 @@
   transition: all 0.2s ease;
 }
 
-.cancel-button:hover {
+.cancel-diagnosis-button:hover {
   background-color: #fff8f3;
 }
 
+/* binago padding and border-radius */
 .unlock-button {
-  padding: 0.6rem 1.2rem;
+  padding: 0.5rem 1.5rem;
   background: var(--orange-color);
   color: white;
   border: none;
@@ -120,8 +123,3 @@
     padding: 1.5rem;
   }
 }
-
-
-
-
-

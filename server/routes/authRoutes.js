@@ -18,10 +18,10 @@ const pendingSignups = new Map();
 
 router.use(cookieParser());
 
-router.get('/verify-token', async (req, res) => { // Matches GET request
-    console.log('GET /auth/verify-token hit'); // Log entry
+router.get('/verify-token', async (req, res) => { 
+    console.log('GET /auth/verify-token hit');
 
-    const token = req.cookies.token; // Read the token cookie
+    const token = req.cookies.token;
     console.log('Token from cookie:', token);
 
     if (!token) {
@@ -30,38 +30,23 @@ router.get('/verify-token', async (req, res) => { // Matches GET request
     }
 
     try {
-        // Verify the token using your secret key
-        const decoded = jwt.verify(token, process.env.JWT_SECRET); // Use YOUR secret key
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
         console.log('Token decoded successfully:', decoded);
-
-        // Optional: Check if user still exists (good practice)
-        // const user = await yourUserModel.findById(decoded.userId);
-        // if (!user) {
-        //     console.log('User from token not found in DB.');
-        //     res.clearCookie('token', { path: '/' }); // Clear invalid cookie
-        //     return res.status(401).json({ error: 'Not authenticated: User not found.' });
-        // }
-
-        // Make sure the role exists in the decoded token payload
         if (!decoded.role) {
              console.log('Role missing in token payload.');
-             res.clearCookie('token', { path: '/' }); // Clear potentially bad cookie
+             res.clearCookie('token', { path: '/' }); 
              return res.status(401).json({ error: 'Not authenticated: Role missing in token.' });
         }
 
         console.log('Verification successful. Sending back role:', decoded.role);
-        // Send back the role confirmed from the valid token
         res.status(200).json({ role: decoded.role });
 
     } catch (error) {
         console.error('Token verification error:', error.message);
-        // Handle specific JWT errors if needed (e.g., TokenExpiredError)
-        res.clearCookie('token', { path: '/' }); // Clear invalid/expired cookie
+        res.clearCookie('token', { path: '/' });
         return res.status(401).json({ error: 'Not authenticated: Invalid or expired token.' });
     }
 });
-
-// Postman test: verify captcha
 router.post("/captcha/verify", (req, res) => {
     const { captchaResponse } = req.body;
 
@@ -84,7 +69,7 @@ router.post("/captcha/verify", (req, res) => {
 // route to generate captcha
 router.get("/captcha", authController.getCaptcha);
 
-// Routes for user signup and logout (delegated to authController)
+// routes for user signup and logout (delegated to authController)
 router.post("/login", authController.loginUser);
 router.post("/signup/petowner-step1", authController.signupPetOwnerStep1);
 router.post("/signup/petowner-step2", authController.signupPetOwnerStep2);
@@ -92,7 +77,7 @@ router.post("/signup/employee", authController.signupEmployeeRequest);
 router.post("/signup/employee-verify", authController.signupEmployeeComplete);
 router.post("/logout", authenticate, authController.logoutUser);
 
-// Routes for password reset
+// routes for password reset
  router.post("/forgot-password", requestPasswordReset);
  router.post("/verify-reset-code", verifyResetCode);
  router.post("/reset-password", resetPassword);

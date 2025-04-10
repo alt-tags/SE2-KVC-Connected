@@ -13,7 +13,7 @@ const db = require("../config/db");
 const getNewCaptchaData = (req) => {
     const newCaptchaText = generateCaptcha();
     const newCaptchaImage = generateCaptchaImage(newCaptchaText);
-    req.session.captcha = newCaptchaText; // Update session *before* sending response
+    req.session.captcha = newCaptchaText; 
     return { image: newCaptchaImage, captchaKey: newCaptchaText };
 };
 
@@ -25,16 +25,21 @@ exports.getCaptcha = (req, res) => {
     res.json({ image: captchaImage, captchaKey: captchaText });
 };
 
+// user login
 exports.loginUser = async (req, res) => {
     try {
         const { email, password, captchaInput } = req.body;
 
+<<<<<<< HEAD
         if (!email || !password) {
             req.session.captcha = null; // Clear CAPTCHA
             return res.status(400).json({ error: "Email and password are required" });
         }
 
         // Validate CAPTCHA
+=======
+        // validate CAPTCHA
+>>>>>>> upstream/master
         if (!req.session.captcha || captchaInput !== req.session.captcha) {
             const newCaptcha = getNewCaptchaData(req);
             return res.status(401).json({
@@ -42,11 +47,11 @@ exports.loginUser = async (req, res) => {
                 newCaptcha: newCaptcha,
             });
         }
-        // CAPTCHA is valid for this attempt, clear it ONLY IF login proceeds successfully
-        // req.session.captcha = null;
 
-        // Validate email and password
+        // validate email
         const user = await UserModel.findByEmail(email);
+
+        // validate password
         if (!user || !(await bcrypt.compare(password, user.user_password))) {
             const newCaptcha = getNewCaptchaData(req);
             return res.status(401).json({
@@ -55,11 +60,11 @@ exports.loginUser = async (req, res) => {
             });
         }
 
-        req.session.captcha = null; // Clear CAPTCHA *after* successful validation
+        // clear CAPTCHA after succesfull validation
+        req.session.captcha = null;
 
-        // Generate token and set cookie
+        // generate token and set cookie
         const token = generateToken(user.user_id, user.user_role);
-        console.log("Generated Token:", token);
 
         res.cookie("token", token, {
             httpOnly: true,
@@ -73,9 +78,9 @@ exports.loginUser = async (req, res) => {
             role: user.user_role,
             redirectUrl: "/patients",
         });
+
     } catch (error) {
-        console.error("Login Error:", error);
-        // Generate new captcha even for server errors if retry is expected
+        // generate new captcha if retry is expected
         const newCaptcha = getNewCaptchaData(req);
         res.status(500).json({
             error: "❌ Server error during login",
@@ -84,19 +89,22 @@ exports.loginUser = async (req, res) => {
     }
 };
 
+// pet owner signup
 exports.signupPetOwnerStep1 = async (req, res) => {
     const { fname, lname, email, contact, address, password, confirmPassword } = req.body;
 
+    // validate required fields
     if (!fname || !lname || !email || !contact || !address || !password || !confirmPassword) {
         return res.status(400).json({ error: "❌ All fields are required!" });
     }
+
+    // validate password mismatch
     if (password !== confirmPassword) {
         return res.status(400).json({ error: "❌ Passwords do not match!" });
     }
 
-    // Password validation regex
+    // validate password strength
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-
 
     if (!passwordRegex.test(password)) {
         return res.status(400).json({
@@ -104,8 +112,8 @@ exports.signupPetOwnerStep1 = async (req, res) => {
         });
     }
 
-
     try {
+        // validate email uniqueness
         if (await UserModel.isEmailTaken(email)) {
             return res.status(400).json({ error: "❌ Email already in use." });
         }
@@ -113,6 +121,7 @@ exports.signupPetOwnerStep1 = async (req, res) => {
         req.session.petOwnerData = {
             fname, lname, email, contact, address, password: await hashPassword(password)
         };
+
         req.session.step1Completed = true;
 
         res.json({
@@ -120,7 +129,6 @@ exports.signupPetOwnerStep1 = async (req, res) => {
             redirectUrl: "/signup-petowner-petinfo"
         });
     } catch (error) {
-        console.error("Signup Error:", error);
         res.status(500).json({ error: "❌ Server error during signup." });
     }
 };
@@ -128,17 +136,16 @@ exports.signupPetOwnerStep1 = async (req, res) => {
 exports.signupPetOwnerStep2 = async (req, res) => {
     const { petname, gender, speciesDescription, breed, birthdate, altPerson1, altContact1, captchaInput } = req.body;
 
-    // Validate CAPTCHA first
+    // validate CAPTCHA first
     if (!req.session.captcha || captchaInput !== req.session.captcha) {
         const newCaptcha = getNewCaptchaData(req);
         return res.status(400).json({
             error: "❌ Incorrect CAPTCHA!",
-            newCaptcha: newCaptcha, // Send new captcha
+            newCaptcha: newCaptcha,
         });
     }
-    // Don't clear captcha yet, only on success
 
-    // Ensure Step 1 is completed
+    // validate session data in step 1 (user info)
     if (!req.session.petOwnerData || !req.session.step1Completed) {
         const newCaptcha = getNewCaptchaData(req);
         return res.status(400).json({ 
@@ -147,42 +154,42 @@ exports.signupPetOwnerStep2 = async (req, res) => {
         });
     }
 
-    // Validate required fields
+    // validate required fields
     if (!petname || !gender || !speciesDescription || !altPerson1 || !altContact1) {
-        const newCaptcha = getNewCaptchaData(req); // Generate new captcha
+        const newCaptcha = getNewCaptchaData(req);
         return res.status(400).json({
             error: "❌ All required fields must be filled out!",
-            newCaptcha: newCaptcha, // Send new captcha
+            newCaptcha: newCaptcha,
         });
     }
 
     const { fname, lname, email, contact, address, password } = req.session.petOwnerData;
-    let connection; // Define connection outside try block for finally
+    let connection;
 
     try {
-        // Find species ID by description
         const species = await PetModel.findSpeciesByDescription(speciesDescription);
+
         if (!species) {
-            const newCaptcha = getNewCaptchaData(req); // Generate new captcha
+            const newCaptcha = getNewCaptchaData(req);
             return res.status(400).json({
                 error: "❌ Invalid species selected.",
-                newCaptcha: newCaptcha, // Send new captcha
+                newCaptcha: newCaptcha,
             });
         }
+
         const speciesId = species.spec_id;
 
-        // Start transaction
         const connection = await db.getConnection();
         await connection.beginTransaction();
 
         try {
-            // Create pet owner
+            // create pet owner
             const userId = await UserModel.createPetOwner(
                 { fname, lname, email, contact, address, password, altPerson1, altContact1 },
                 connection
             );
 
-            // Function to calculate pet age in years and months
+            // calculate pet age in years and months
             const calculatePetAge = (birthdate) => {
                 const birth = new Date(birthdate);
                 const today = new Date();
@@ -190,21 +197,17 @@ exports.signupPetOwnerStep2 = async (req, res) => {
                 let years = today.getFullYear() - birth.getFullYear();
                 let months = today.getMonth() - birth.getMonth();
 
-
                 if (months < 0) {
                     years--;
                     months += 12;
                 }
 
-
                 return { years: years, months: months };
             };
 
-
-            // Calculate pet age before creating a pet entry
+            // calculate pet age
             let petAgeYear = null;
             let petAgeMonth = null;
-
 
             if (birthdate) {
                 const age = calculatePetAge(birthdate);
@@ -212,14 +215,14 @@ exports.signupPetOwnerStep2 = async (req, res) => {
                 petAgeMonth = age.months;
             }
 
-            // Create pet
+            // create pet
             const petId = await PetModel.createPet(
                 {
                     petname,
                     gender,
                     speciesId,
-                    breed: breed || null, // Handle nullable breed
-                    birthdate: birthdate || null, // Handle nullable birthdate
+                    breed: breed || null, 
+                    birthdate: birthdate || null,
                     petAgeYear,
                     petAgeMonth,
                     userId,
@@ -227,13 +230,12 @@ exports.signupPetOwnerStep2 = async (req, res) => {
                 connection
             );
 
-            // Commit transaction
             await connection.commit();
 
-            // Signup Success
+            // signup success
             req.session.captcha = null;
 
-            // Generate token for the new pet owner
+            // generate token
             const token = generateToken(userId, "owner");
             res.cookie("token", token, {
                 httpOnly: true,
@@ -242,32 +244,29 @@ exports.signupPetOwnerStep2 = async (req, res) => {
                 maxAge: 15 * 60 * 1000,
             });
 
-            // Clear session data
+            // clear session data
             req.session.petOwnerData = null;
             req.session.step1Completed = null;
 
             res.status(201).json({ message: "✅ Pet Owner account created successfully!", role: "owner", redirectUrl: "/patients" });
         } catch (error) {
-            // Rollback transaction if anything fails
-            if (connection) await connection.rollback(); // Rollback
-            console.error("Transaction Error:", error);
+            if (connection) await connection.rollback();
 
-            const newCaptcha = getNewCaptchaData(req); // Generate new captcha
+            const newCaptcha = getNewCaptchaData(req);
 
             res.status(500).json({
                 error: "❌ Server error during signup. Please try again.",
-                newCaptcha: newCaptcha, // Send new captcha
+                newCaptcha: newCaptcha,
             });
         } finally {
-            if (connection) connection.release(); // Release connection
+            if (connection) connection.release();
         }
     } catch (error) {
-        console.error("Signup Step 2 Error:", error);
-        const newCaptcha = getNewCaptchaData(req); // Generate new captcha
+        const newCaptcha = getNewCaptchaData(req);
 
         res.status(500).json({
             error: "❌ Server error during signup.",
-            newCaptcha: newCaptcha, // Send new captcha
+            newCaptcha: newCaptcha,
         });
     }
 };
@@ -276,46 +275,43 @@ exports.signupPetOwnerStep2 = async (req, res) => {
 exports.signupEmployeeRequest = async (req, res) => {
     const { fname, lname, contact, email, role, password, confirmPassword, captchaInput } = req.body;
     
-    // Validate CAPTCHA first
+    // validate CAPTCHA first
      if (!req.session.captcha || captchaInput !== req.session.captcha) {
         const newCaptcha = getNewCaptchaData(req);
-        console.log("New CAPTCHA generated (Incorrect Input):", newCaptcha.captchaKey);
         return res.status(400).json({
             error: "❌ Incorrect CAPTCHA!",
             newCaptcha: newCaptcha,
         });
     }
 
+    // validate required fields
     if (!fname || !lname || !email || !role || !password || !confirmPassword) {
         const newCaptcha = getNewCaptchaData(req);
-         console.log("New CAPTCHA generated (Missing Fields):", newCaptcha.captchaKey);
 
         return res.status(400).json({ 
             error: "❌ All fields are required!",
-            newCaptcha: newCaptcha, // Send new captcha
+            newCaptcha: newCaptcha,
         });
     }
 
-    // Validate password match (ADD REFRESH HERE)
+    // validate password match
     if (password !== confirmPassword) {
         const newCaptcha = getNewCaptchaData(req);
-         console.log("New CAPTCHA generated (Password Mismatch):", newCaptcha.captchaKey);
+
         return res.status(400).json({
             error: "❌ Passwords do not match!",
-            newCaptcha: newCaptcha, // Send new captcha
+            newCaptcha: newCaptcha, 
         });
     }
 
-    // Password validation regex
+    // validate password strength
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-
 
     if (!passwordRegex.test(password)) {
         return res.status(400).json({
             error: "❌ Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character."
         });
     }
-
 
     try {
         const existingUser = await UserModel.findByEmail(email);
@@ -324,16 +320,17 @@ exports.signupEmployeeRequest = async (req, res) => {
             console.log("New CAPTCHA generated (Email Taken):", newCaptcha.captchaKey);
            return res.status(400).json({
                error: "❌ Email already in use.",
-               newCaptcha: newCaptcha, // Send new captcha
+               newCaptcha: newCaptcha,
            });
         }
 
-        req.session.captcha = null; // Clear CAPTCHA *after* successful validation
+        req.session.captcha = null;
 
         const accessCode = crypto.randomBytes(4).toString("hex").toUpperCase();
 
         req.session.employeeData = { fname, lname, contact, email, role, password, accessCode };
 
+        // send email to clinic owner
         const clinicOwnerEmail = process.env.CLINIC_OWNER_EMAIL;
         const subject = "New Employee Signup Request - PAWtient Tracker";
         const body = `Hello Clinic Owner,\n\nA new employee has requested to sign up:\n\nName: ${fname} ${lname}\n Contact Number: ${contact}\nEmail: ${email}\nPosition: ${role}\n\nTo approve, provide them with the following access code:\n\nAccess Code: ${accessCode}\n\nIf this request is unauthorized, please ignore this email.`;
@@ -346,19 +343,18 @@ exports.signupEmployeeRequest = async (req, res) => {
         });
     } catch (err) {
         console.error("Employee Signup Request Error:", err);
-        const newCaptcha = getNewCaptchaData(req); // Generate new captcha for server errors too
-        console.log("New CAPTCHA generated (Server Error):", newCaptcha.captchaKey);
+        const newCaptcha = getNewCaptchaData(req);
         res.status(500).json({
             error: "❌ Server error during signup request.",
-            newCaptcha: newCaptcha, // Send new captcha
+            newCaptcha: newCaptcha,
         });
     }
 };
 
-// Complete Employee Signup
 exports.signupEmployeeComplete = async (req, res) => {
     const { accessCode } = req.body;
 
+    // validate access code is not null
     if (!accessCode) {
         return res.status(400).json({ error: "❌ Access code is required!" });
     }
@@ -370,6 +366,7 @@ exports.signupEmployeeComplete = async (req, res) => {
 
         const { fname, lname, contact, role, password, accessCode: storedCode, email } = req.session.employeeData;
 
+        // validate access code
         if (accessCode !== storedCode) {
             return res.status(400).json({ error: "❌ Invalid access code." });
         }
@@ -377,8 +374,9 @@ exports.signupEmployeeComplete = async (req, res) => {
         const hashedPassword = await hashPassword(password);
         const userId = await UserModel.createEmployee({ fname, lname, contact, email, role, hashedPassword });
 
+        // create token for user
         const token = generateToken(userId, role);
-        console.log('Generated Token:', token);
+
         res.cookie("token", token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
@@ -395,7 +393,6 @@ exports.signupEmployeeComplete = async (req, res) => {
             redirectUrl: "/patients",
         });
     } catch (error) {
-        console.error("Employee Signup Error:", error);
         res.status(500).json({ error: "❌ Server error." });
     }
 };
@@ -403,6 +400,7 @@ exports.signupEmployeeComplete = async (req, res) => {
 // user logout
 exports.logoutUser = (req, res) => {
     try {
+        // clear cookie and token
         req.session.destroy((err) => {
             if (err) {
                 return res.status(500).json({ message: "Logout failed" });

@@ -1,96 +1,183 @@
 /* sidebar ni desktop */
 .desktop-sidebar {
-    width: 70px;
-    background-color: var(--orange-color);
-    padding: 1rem 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-    margin: 1rem;
-    border-radius: 1rem;
-    position: fixed;
-    left: 0;
-    top: 65px;
-    bottom: 0;
-    overflow-y: auto;
-    z-index: 1000;
+  width: 70px;
+  background-color: var(--orange-color);
+  padding: 1rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin: 1rem;
+  border-radius: 1rem;
+  position: fixed;
+  left: 0;
+  top: 65px;
+  bottom: 0;
+  overflow-y: auto;
+  z-index: 2000;
+  transition: width 0.3s ease;
+}
+
+
+.desktop-sidebar.expanded {
+  width: 250px;
+  align-items: flex-start;
+}
+
+
+.sidebar-item {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-left: 0;
+  text-decoration: none;
+}
+
+
+.desktop-sidebar.expanded .sidebar-item {
+  width: 190px;
+  justify-content: flex-start;
+  align-items: center;
+  padding-left: 15px;
+  position: relative;
+}
+
+
+.desktop-sidebar.expanded .sidebar-item svg {
+  margin-left: 8px;
+  position: absolute;
+  align-items: center;
+  justify-content: center;
+}
+
+
+.desktop-sidebar.expanded .sidebar-item span {
+  display: block;
+  margin-left: 70px;
+  color: white;
+  font-size: 1rem;
+  white-space: nowrap;
+  text-align: left;
+  line-height: 1.5;
+}
+
+
+.sidebar-item span {
+  display: none;
+  color: white;
+  font-size: 1rem;
+  white-space: nowrap;
+  text-align: left;
+}
+
+
+.sidebar-item svg {
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+}
+
+
+.toggle-button {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  background: none;
+  border: none;
+  margin-top: auto;
+}
+
+
+.desktop-sidebar.expanded .toggle-button {
+  margin-left: 12px;
+}
+
+
+.desktop-sidebar {
+  overflow-x: hidden;
+}
+
+
+.desktop-sidebar.expanded {
+  overflow-x: hidden;
+}
+
+
+/* mobile sidebar */
+.mobile-sidebar {
+  display: none;
+  position: fixed;
+  top: 80px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--orange-color);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  z-index: 1999;
+}
+
+
+.mobile-menu {
+  display: flex;
+  flex-direction: column;
+  padding: 2rem;
+  height: 100%;
+}
+
+
+.mobile-menu-item {
+  color: white;
+  text-decoration: none;
+  font-size: 1.5rem;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: background-color 0.3s ease;
+}
+
+
+.mobile-menu-item:hover,
+.mobile-menu-item.active {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+
+@media (max-width: 768px) {
+  .desktop-sidebar {
+    display: none;
+    z-index: 3000;
   }
-  
-  .sidebar-item {
-    width: 48px;
-    height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 8px;
-    color: white;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+
+
+  .mobile-sidebar {
+    display: block;
+    z-index: 3000;
   }
-  
-  .sidebar-item:hover,
-  .sidebar-item.active {
-    background-color: rgba(255, 255, 255, 0.2);
+
+
+  .mobile-sidebar.visible {
+    transform: translateX(0);
+    z-index: 3000;
   }
-  
-  /* mobile sidebar */
+}
+
+
+@media (min-width: 769px) {
   .mobile-sidebar {
     display: none;
-    position: fixed;
-    top: 80px;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: var(--orange-color);
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
-    z-index: 1999;
   }
-  
-  .mobile-menu {
-    display: flex;
-    flex-direction: column;
-    padding: 2rem;
-    height: 100%;
-  }
-  
-  .mobile-menu-item {
-    color: white;
-    text-decoration: none;
-    font-size: 1.5rem;
-    padding: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    transition: background-color 0.3s ease;
-  }
-  
-  .mobile-menu-item:hover,
-  .mobile-menu-item.active {
-    background-color: rgba(255, 255, 255, 0.2);
-  }
-  
-  @media (max-width: 768px) {
-    .desktop-sidebar {
-      display: none;
-      z-index: 3000;
-    }
-  
-    .mobile-sidebar {
-      display: block;
-      z-index: 3000;
-    }
-  
-    .mobile-sidebar.visible {
-      transform: translateX(0);
-      z-index: 3000;
-    }
-  }
-  
-  @media (min-width: 769px) {
-    .mobile-sidebar {
-      display: none;
-    }
-  }
-  
+}

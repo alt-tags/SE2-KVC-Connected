@@ -10,53 +10,54 @@ const fs = require("fs");
 
 const router = express.Router();
 
-// ✅ Ensure upload directory exists
+// ensure upload directory exists
 const uploadDir = path.join(__dirname, "../uploads");
 if (!fs.existsSync(uploadDir)) {
-   fs.mkdirSync(uploadDir, { recursive: true });
+    fs.mkdirSync(uploadDir, { recursive: true });
 }
 
 
-// ✅ Multer configuration
+// multer configuration
 const storage = multer.diskStorage({
-   destination: (req, file, cb) => {
-       cb(null, uploadDir);
-   },
-   filename: (req, file, cb) => {
-       cb(null, `${Date.now()}-${file.originalname}`);
-   },
+    destination: (req, file, cb) => {
+        cb(null, uploadDir);
+    },
+    filename: (req, file, cb) => {
+        cb(null, `${Date.now()}-${file.originalname}`);
+    },
 });
 
 
 const upload = multer({
-   storage: storage,
-   limits: { fileSize: 5 * 1024 * 1024 },
-   fileFilter: (req, file, cb) => {
-       const allowedMimeTypes = ["image/jpeg", "image/png"];
-       if (allowedMimeTypes.includes(file.mimetype)) {
-           cb(null, true);
-       } else {
-           cb(new Error("Invalid file type. Only JPG, PNG, and PDF files are allowed."));
-       }
-   },
+    storage: storage,
+    limits: { fileSize: 5 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+        const allowedMimeTypes = ["image/jpeg", "image/png"];
+        if (allowedMimeTypes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error("Invalid file type. Only JPG, PNG, and PDF files are allowed."));
+        }
+    },
 });
 
-
 router.get("/visit-records", authenticateToken, authenticate, recordController.getVisitRecords);
+
 router.post(
     "/records/:petId", authenticateToken,
     authenticate,
     authorize({ roles: ["doctor", "clinician"] }),
     upload.single("record_lab_file"),
     recordController.addRecord
- );
- router.put(
+);
+
+router.put(
     "/records/:recordId", authenticateToken,
     authenticate,
     authorize({ roles: ["doctor", "clinician"] }),
     upload.single("record_lab_file"),
     recordController.updateRecord
- );
+);
  
 router.get("/records/request-access-code", authenticateToken, authenticate, authorize({roles: ["clinician"]}), recordController.requestDiagnosisAccessCode);
 
@@ -64,8 +65,6 @@ router.get("/records/request-access-code", authenticateToken, authenticate, auth
 router.get("/search-records", authenticateToken, async (req, res) => {
     try {
         let { pet_id, sort_order, start_date, end_date } = req.query;
-
-        console.log("Received sort_order:", sort_order); // Debugging line
 
         if (!pet_id) {
             return res.status(400).json({ error: "pet_id is required" });
@@ -84,7 +83,7 @@ router.get("/search-records", authenticateToken, async (req, res) => {
         `;
         let queryParams = [pet_id];
 
-        // ✅ Filtering by Date Range
+        // filtering by Date Range
         if (start_date) {
             query += " AND record_info.record_date >= ?";
             queryParams.push(start_date);
@@ -94,15 +93,12 @@ router.get("/search-records", authenticateToken, async (req, res) => {
             queryParams.push(end_date);
         }
 
-        // ✅ Sorting by Date (oldest → newest, newest → oldest)
+        // sorting by Date (oldest → newest, newest → oldest)
         if (sort_order === "ASC" || sort_order === "DESC") {
             query += ` ORDER BY record_info.record_date ${sort_order}`;
         } else {
             query += " ORDER BY record_info.record_date DESC"; // Default: Newest to Oldest
         }
-
-        console.log("Final Query:", query); // Debugging line
-        console.log("Query Parameters:", queryParams); // Debugging line
 
         const [results] = await db.query(query, queryParams);
         res.json(results);
@@ -113,12 +109,12 @@ router.get("/search-records", authenticateToken, async (req, res) => {
 });
 
 
-// Route to download a specific record for a pet
+// route to download a specific record for a pet
 router.get("/generate-pdf/:petId/:recordId", authenticateToken, async (req, res) => {
     const { petId, recordId } = req.params;
 
     try {
-        // Generate the PDF file for the specific record
+        // generate the PDF file for the specific record
         const pdfPath = await generatePdf(petId, recordId);
 
         res.setHeader("Content-Type", "application/pdf");
@@ -133,7 +129,5 @@ router.get("/generate-pdf/:petId/:recordId", authenticateToken, async (req, res)
         res.status(500).json({ error: "Failed to generate PDF" });
     }
 });
-
-
 
 module.exports = router;

@@ -9,8 +9,6 @@ exports.getEmployeeProfile = [
     async (req, res) => {
         const userId = req.user.userId;
 
-        console.log("Fetching profile for User ID:", userId);
-
         try {
             const employeeProfile = await UserModel.getUserById(userId);
 
@@ -32,15 +30,11 @@ exports.getEmployeeProfile = [
     }
 ];
 
-// Update employee profile
 exports.updateEmployeeProfile = [
     authenticate,
     async (req, res) => {
         const { firstname, lastname, email, contact } = req.body;
         const userId = req.user.userId;
-
-        console.log("Request Body:", req.body);
-        console.log("User ID from JWT:", userId);
 
         try {
             const currentProfile = await UserModel.getUserById(userId);
@@ -68,23 +62,16 @@ exports.updateEmployeeProfile = [
     }
 ];
 
-// Update pet owner profile
 exports.updateOwnerProfile = [
     authenticate,
     async (req, res) => {
         const { firstname, lastname, email, contact, address, altperson, altcontact, altperson2, altcontact2 } = req.body;
         const userId = req.user.userId;
 
-        console.log("Request Body:", req.body);
-        console.log("User ID from JWT:", userId);
-
-        // Validate required fields
         const requiredFields = [firstname, lastname, email, contact, address, altperson, altcontact];
         if (requiredFields.some((field) => !field || field.trim() === "")) {
             return res.status(400).json({ error: "All fields except Emergency Contact 2 and Person 2 are required and cannot be empty." });
         }
-
-        // Validate Emergency Contact 2 and Person 2
         if ((altperson2 && !altcontact2) || (!altperson2 && altcontact2)) {
             return res.status(400).json({ error: "If Emergency Contact Person 2 is provided, Emergency Contact Number 2 must also be provided, and vice versa." });
         }
@@ -101,8 +88,8 @@ exports.updateOwnerProfile = [
                 address: address || currentOwnerProfile.owner_address,
                 altperson: altperson || currentOwnerProfile.owner_alt_person1,
                 altcontact: altcontact || currentOwnerProfile.owner_alt_contact1,
-                altperson2: altperson2 || null, // Set to null if not provided
-                altcontact2: altcontact2 || null, // Set to null if not provided
+                altperson2: altperson2 || null,
+                altcontact2: altcontact2 || null, 
             };
 
             await UserModel.updateOwnerProfile(
@@ -144,7 +131,8 @@ exports.changePassword = [
             return res.status(400).json({ error: "❌ New passwords do not match!" });
         }
 
-            // Password validation regex
+        // password requirements
+        // At least 8 characters long, at least one uppercase letter, one lowercase letter, one number, and one special character
         const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
 
@@ -182,7 +170,7 @@ exports.changePassword = [
 ];
 
 exports.getOwnerProfile = async (req, res) => {
-    const userId = req.user.userId; // Extract user ID from the authenticated token
+    const userId = req.user.userId;     
 
     try {
         const [userResult] = await db.query(
@@ -208,7 +196,7 @@ exports.getOwnerProfile = async (req, res) => {
             return res.status(404).json({ error: "Owner profile not found" });
         }
 
-        res.json(userResult[0]); // Return the owner's profile
+        res.json(userResult[0]);
     } catch (error) {
         console.error("Error fetching owner profile:", error);
         res.status(500).json({ error: "Failed to fetch owner profile" });

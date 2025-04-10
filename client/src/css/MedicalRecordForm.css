@@ -42,12 +42,13 @@
   width: 100%;
 }
 
-
+/* changed  for kgs/temp */
 .input-container {
   display: grid;
   grid-template-columns: 170px 1fr;
-  align-items: center;
   gap: 2rem;
+  margin-bottom: 1.5rem;
+  align-items: start;
 }
 
 
@@ -324,9 +325,9 @@ textarea {
 
 @media (max-width: 1024px) {
   .error-message-record {
-      margin-bottom: 0.25rem;
-      margin-left: 190px;
-      grid-column: 1 / span 2;
+    margin-bottom: 0.25rem;
+    margin-left: 190px;
+    grid-column: 1 / span 2;
   }
 
 
@@ -344,7 +345,7 @@ textarea {
     box-sizing: border-box;
     max-width: 100% !important;
   }
- 
+
   .form-field {
     flex-direction: column;
     align-items: flex-start;
@@ -352,14 +353,14 @@ textarea {
     max-width: 100%;
     display: flex;
   }
- 
+
   .file-name-display {
     max-width: calc(100% - 100px);
     width: calc(100% - 100px) !important;
     box-sizing: border-box;
     font-size: 0.8rem;
   }
- 
+
   .file-select-button {
     width: auto;
     padding: 8px 10px;
@@ -383,12 +384,12 @@ textarea {
     gap: 1rem;
     max-width: 100%;
   }
- 
+
   .form-field label {
     min-width: 170px;
     width: 170px;
   }
- 
+
   .value-text {
     width: 100%;
   }
@@ -401,38 +402,39 @@ textarea {
 
 
 @media (max-width: 768px) {
+
   .medical-info h2,
   .visit-details h2 {
     font-size: 1.25rem;
     margin-bottom: 1.5rem;
   }
- 
+
   .input-container {
     grid-template-columns: 1fr;
     gap: 0.5rem;
     width: 100%;
   }
- 
+
   .form-field label {
     min-width: 100%;
     width: 100%;
     margin-bottom: 0.25rem;
   }
- 
+
   .error-message-record {
     margin-left: 0;
     grid-column: 1;
   }
- 
+
   .radio-group {
     gap: 1rem;
   }
- 
+
   .file-input-ui {
     display: flex;
     width: 100% !important;
   }
- 
+
   .file-select-button {
     width: auto;
     padding: 6px 10px;
@@ -440,13 +442,13 @@ textarea {
     max-width: 80px;
     font-size: 0.85rem;
   }
- 
+
   .file-name-display {
     padding: 6px 8px;
     font-size: 0.75rem;
     width: calc(100% - 85px) !important;
   }
- 
+
   .form-field select {
     max-width: 100% !important;
     width: 100% !important;
@@ -528,4 +530,24 @@ textarea {
 textarea[name="latestDiagnosis"] {
   min-height: 50px;
   height: 50px;
+}
+
+.input-with-unit {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-with-unit input {
+  width: 100%;
+  padding-right: 40px;
+}
+
+.unit-text {
+  position: absolute;
+  right: 10px;
+  color: #666;
+  font-size: 1rem;
+  pointer-events: none;
+  font-weight: bold;
 }

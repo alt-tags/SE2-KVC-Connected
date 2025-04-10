@@ -41,7 +41,6 @@ class PetModel {
             [pet_id]
         );
 
-        console.log("Query Result for pet_id:", pet_id, result); // Debugging log
         return result.length ? result[0] : null;
     }
 
@@ -53,14 +52,12 @@ class PetModel {
     static async createPet({ petname, gender, speciesId, breed, birthdate, petAgeYear, petAgeMonth, userId }, connection) {
         try {
             const finalBirthdate = birthdate ? birthdate : dayjs().format('YYYY-MM-DD');
-            // Use the provided connection for the transaction
             const [result] = await connection.query(
                 "INSERT INTO pet_info (pet_name, pet_gender, pet_breed, pet_birthday, pet_age_year, pet_age_month, pet_vitality, pet_status, user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 [petname, gender, breed, finalBirthdate, petAgeYear, petAgeMonth, true, true, userId] // pet_status = 1 (active)
             );
             const petId = result.insertId;
 
-            // Insert into match_pet_species table
             await connection.query("INSERT INTO match_pet_species (spec_id, pet_id) VALUES (?, ?)", [speciesId, petId]);
 
             return petId;

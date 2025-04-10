@@ -7,18 +7,18 @@
   flex-direction: row;
   gap: 2rem;
   padding: 2rem;
- }
- .left-section {
+}
+.left-section {
   padding: 2rem;
- }
- .left-section h1 {
+}
+.left-section h1 {
   font-size: 60px;
   font-weight: bold;
   color: #FF884B;
   margin-top: 50px;
   margin-bottom: 100px;
- }
- .alternate-links {
+}
+.alternate-links {
   justify-content: center;
   align-items: center;
   text-align: center;
@@ -28,8 +28,8 @@
   display: flex;
   flex-direction: column;
   width: 100%;
- }
- .right-section {
+}
+.right-section {
   max-width: 500px;
   background: url('/loginsignup_bg.png');
   background-size: cover;
@@ -40,189 +40,209 @@
   margin: 3rem;
   margin-top: 7rem;
   text-align: center;
- }
- .right-section h2 {
+}
+.right-section h2 {
   font-size: 2rem;
   color: #FFFFFF;
- }
- 
- 
- 
- 
- .code-h2 {
+}
+
+
+
+
+.code-h2 {
   margin-top: 15px;
   margin-bottom: 40px;
- }
- 
- 
- 
- 
- .right-section p {
+}
+
+
+
+
+.right-section p {
   font-size: 1.2rem;
   font-weight: bold;
   color: #FFFFFF;
   margin: 0.5rem;
   margin-bottom: 2rem;
- }
- .forms-group {
+}
+.forms-group {
   margin-bottom: 0.5rem;
   text-align: left;
- }
- 
- 
- 
- 
- .code-formgroup label {
+}
+
+
+
+
+.code-formgroup label {
   margin-bottom: 10px;
- }
- 
- 
- 
- 
- .code-formgroup input {
+}
+
+
+
+
+.code-formgroup input {
   margin-bottom: 30px;
- }
- .forms-group label, .radio label {
+}
+.forms-group label, .radio label {
   font-weight: bold;
   display: block;
   font-size: 1rem;
   color: #FFFFFF;
   text-align: left;
- }
- 
- 
- 
- 
- .forms-group select,
- .forms-group input,
- .form-select{
+}
+
+
+
+
+.forms-group select,
+.forms-group input,
+.form-select{
   width: 100%;
   padding: 0.3rem;
   border: 1px solid #ccc;
   border-radius: 5px;
   font-size: 1rem;
- }
- .forms-group input:focus {
+}
+.forms-group input:focus {
   outline: none;
   border-color: #FF884B;
- }
- .signup-form-row {
+}
+.signup-form-row {
   display: flex;
   align-items: center;
   gap: 1rem;
   width: 100%;
   margin-bottom: 5px;
- }
- .radio {
+}
+.radio {
   align-items: center;
   gap: 1rem;
   margin-bottom: 1rem;
- }
- .radio-group {
+}
+.radio-group {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   margin-top: 10px;
- }
- .captcha {
+}
+.captcha {
   font-weight: bold;
   color: white;
   width: 100%;
   margin-bottom: 1rem;
- }
- .captcha-container {
+}
+
+.captcha-container {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  align-items: stretch;
   margin-top: 5px;
   width: 100%;
-  gap: 0rem;
- }
- .captcha .generated {
-  background-color: #838383;
+  gap: 0;
+  overflow: hidden;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+}
+
+.captcha .generated {
   color: white;
-  padding: 0.5rem 0.5rem;
+  padding: 0.5rem 1rem;
   font-size: 1rem;
   text-align: center;
-  border-radius: 5px;
-  flex: 1;
+  flex: 0 0 auto;
   min-width: 120px;
   letter-spacing: 2px;
- }
- .forgot {
+  background-color: #f0f0f0;
+  font-family: "Times New Roman", Times, serif !important;
+  font-size: 1.5rem;
+}
+
+.captcha-container input {
+  border: none;
+  text-align: center;
+  padding: 0.5rem;
+  flex: 1;
+  min-width: 120px;
+  font-size: 1.5rem;
+}
+
+.captcha-container input:focus {
+  outline: none;
+  background-color: #fff;
+}
+.forgot {
   text-align: right;
   margin-top: -0.2rem;
   margin-bottom: 1rem;
   font-size: 0.85rem;
- }
- .forgot a {
+}
+.forgot a {
   color: white;
   text-decoration: underline;
- }
- .forgot a:hover {
+}
+.forgot a:hover {
   color: #838383;
- }
- 
- 
- 
- 
- .auth-error-message {
+}
+
+
+
+
+.auth-error-message {
   color: #FF4444;
   margin-bottom: 1rem;
   font-size: 1rem;
   font-weight: bold;
   text-align: center;
   font-style: italic;
- }
- 
- 
+}
 
- .future-date-error {
+
+
+.future-date-error {
   font-style: italic;
- }
- 
- 
- 
- 
- .form-btn-1 {
+}
+
+
+
+
+.form-btn-1 {
   width: 150px;
   padding: 0.4rem;
   font-size: 1rem;
   text-decoration: underline;
   margin: 1rem;
   background-color: #FFFFFF;
- }
- .form-btn-2 {
+}
+.form-btn-2 {
   width: 260px;
   font-size: 1rem;
   background-color: #FFFFFF;
   padding: 0.6rem;
- }
- 
- 
- 
- 
- .form-btn-3 {
+}
+
+
+
+
+.form-btn-3 {
   width: 155px;
   font-size: 1rem;
   padding: 0.4rem;
   margin: 1rem;
- }
- 
- 
- 
- 
+}
+
+
+
+
   .input-wrapper {
     position: relative;
     display: flex;
     align-items: center;
   }
-   .input-wrapper input {
+  .input-wrapper input {
     width: 100%;
     padding-right: 2.5rem;
     /* Add space for the icon */
   }
-   .password-toggle-icon {
+  .password-toggle-icon {
     position: absolute;
     right: 10px;
     top: 50%;
@@ -231,62 +251,62 @@
     color: #838383;
     font-size: 1.2rem;
   }
-   .password-toggle-icon:hover {
+  .password-toggle-icon:hover {
     color: #FF884B
   }
- 
- 
- 
- 
- @media screen and (max-width: 960px) {
+
+
+
+
+@media screen and (max-width: 960px) {
   .left-section {
       padding: 0.5rem;
       margin-left: 2rem;
   }
- 
- 
- 
- 
+
+
+
+
   .left-section h1 {
       font-size: 50px;
   }
- 
- 
- 
- 
+
+
+
+
   .alternate-links {
       position: relative;
       left: auto;
       font-size: 15px;
       margin-top: 1rem;
   }
- 
- 
- 
- 
+
+
+
+
   .form-btn-1 {
       font-size: 15px;
   }
- 
- 
- 
- 
+
+
+
+
   .form-btn-2 {
       font-size: 15px;
   }
- 
- 
- 
- 
+
+
+
+
   .form-btn-3 {
       font-size: 15px;
   }
- }
- 
- 
- 
- 
- @media screen and (max-width: 850px) {
+}
+
+
+
+
+@media screen and (max-width: 850px) {
   .login-container, .signup-container, .accesscode-container, .petinfo-container {
     flex-direction: column;
     padding: 1.5rem;
@@ -295,35 +315,35 @@
     min-height: 100vh;
     margin-top: 4rem;
   }
- 
- 
+
+
   .left-section h1 {
     font-size: 40px;
     text-align: center;
     margin-top: 1rem;
     margin-bottom: 20px;
   }
- 
- 
+
+
   .left-section br {
     display: none;
   }
- 
- 
+
+
   .left-section {
     margin: 0;
     padding: 0;
     width: 100%;
   }
- 
- 
+
+
   .right-section {
     margin: 0;
     padding: 2.5rem;
     position: relative;
   }
- 
- 
+
+
   .alternate-links {
     position: absolute;
     bottom: -80px;
@@ -336,68 +356,68 @@
     gap: 0.5rem;
     font-size: 14px;
   }
- 
- 
+
+
   .right-section h2 {
     font-size: 30px;
     margin-bottom: 5px;
   }
- 
- 
+
+
   .right-section p {
     font-size: 18px;
   }
- 
- 
+
+
   .right-section input,
   .right-section select {
     padding: 0.3rem;
   }
- 
- 
+
+
   .right-section label {
     font-size: 14px;
   }
- 
- 
+
+
   .form-btn-1 {
     font-size: 14px;
   }
- 
- 
+
+
   .form-btn-2 {
     padding: 0.5rem;
     width: 220px;
     font-size: 14px;
   }
- 
- 
+
+
   .form-btn-3 {
     font-size: 14px;
   }
- 
- 
+
+
   .forgot {
     font-size: 14px;
   }
- 
- 
+
+
   .captcha .generated {
     padding: 0.6rem 1rem;
     font-size: 1rem;
     min-width: 120px;
   }
- 
- 
+
+
   .captcha-container {
     gap: 0.3rem;
   }
- }
- 
- 
- 
- 
- @media screen and (max-width: 880px) and (min-width: 850px) {
+}
+
+
+
+
+@media screen and (max-width: 880px) and (min-width: 850px) {
   .login-container, .signup-container, .accesscode-container, .petinfo-container {
     flex-direction: column;
     padding: 1.5rem;
@@ -406,35 +426,35 @@
     min-height: 100vh;
     margin-top: 4rem;
   }
- 
- 
+
+
   .left-section h1 {
     font-size: 45px;
     text-align: center;
     margin-top: 1rem;
     margin-bottom: 20px;
   }
- 
- 
+
+
   .left-section br {
     display: none;
   }
- 
- 
+
+
   .left-section {
     margin: 0;
     padding: 0;
     width: 100%;
   }
- 
- 
+
+
   .right-section {
     margin: 0;
     padding: 2.5rem;
     position: relative;
   }
- 
- 
+
+
   .alternate-links {
     position: absolute;
     bottom: -80px;
@@ -447,68 +467,68 @@
     gap: 0.5rem;
     font-size: 15px;
   }
- 
- 
+
+
   .right-section h2 {
     font-size: 32px;
     margin-bottom: 5px;
   }
- 
- 
+
+
   .right-section p {
     font-size: 19px;
   }
- 
- 
+
+
   .right-section input,
   .right-section select {
     padding: 0.3rem;
   }
- 
- 
+
+
   .right-section label {
     font-size: 15px;
   }
- 
- 
+
+
   .form-btn-1 {
     font-size: 15px;
   }
- 
- 
+
+
   .form-btn-2 {
     padding: 0.5rem;
     width: 240px;
     font-size: 15px;
   }
- 
- 
+
+
   .form-btn-3 {
     font-size: 15px;
   }
- 
- 
+
+
   .forgot {
     font-size: 15px;
   }
- 
- 
+
+
   .captcha .generated {
     padding: 0.6rem 1rem;
     font-size: 1rem;
     min-width: 120px;
   }
- 
- 
+
+
   .captcha-container {
     gap: 0.3rem;
   }
- }
- 
- 
- 
- 
- @media screen and (max-width: 768px) and (min-width: 650px) {
+}
+
+
+
+
+@media screen and (max-width: 768px) and (min-width: 650px) {
   .login-container, .signup-container, .accesscode-container, .petinfo-container {
     flex-direction: column;
     padding: 1.5rem;
@@ -517,35 +537,35 @@
     min-height: 100vh;
     margin-top: 4rem;
   }
- 
- 
+
+
   .left-section h1 {
     font-size: 35px;
     text-align: center;
     margin-top: 1rem;
     margin-bottom: 20px;
   }
- 
- 
+
+
   .left-section br {
     display: none;
   }
- 
- 
+
+
   .left-section {
     margin: 0;
     padding: 0;
     width: 100%;
   }
- 
- 
+
+
   .right-section {
     margin: 0;
     padding: 2.5rem;
     position: relative;
   }
- 
- 
+
+
   .alternate-links {
     position: absolute;
     bottom: -80px;
@@ -558,68 +578,68 @@
     gap: 0.5rem;
     font-size: 13px;
   }
- 
- 
+
+
   .right-section h2 {
     font-size: 28px;
     margin-bottom: 5px;
   }
- 
- 
+
+
   .right-section p {
     font-size: 17px;
   }
- 
- 
+
+
   .right-section input,
   .right-section select {
     padding: 0.3rem;
   }
- 
- 
+
+
   .right-section label {
     font-size: 13px;
   }
- 
- 
+
+
   .form-btn-1 {
     font-size: 13px;
   }
- 
- 
+
+
   .form-btn-2 {
     padding: 0.5rem;
     width: 200px;
     font-size: 13px;
   }
- 
- 
+
+
   .form-btn-3 {
     font-size: 13px;
   }
- 
- 
+
+
   .forgot {
     font-size: 13px;
   }
- 
- 
+
+
   .captcha .generated {
     padding: 0.6rem 1rem;
     font-size: 1rem;
     min-width: 120px;
   }
- 
- 
+
+
   .captcha-container {
     gap: 0.3rem;
   }
- }
- 
- 
- 
- 
- @media screen and (max-width: 650px) {
+}
+
+
+
+
+@media screen and (max-width: 650px) {
   .login-container, .signup-container, .accesscode-container, .petinfo-container {
       flex-direction: column;
       padding: 1rem;
@@ -628,45 +648,45 @@
       min-height: 100vh;
       margin-top: 4rem;
   }
- 
- 
- 
- 
+
+
+
+
   .left-section h1 {
       font-size: 30px;
       text-align: center;
       margin-top: 1rem;
       margin-bottom: 20px;
   }
- 
- 
- 
- 
+
+
+
+
   .left-section br {
       display: none;
   }
- 
- 
- 
- 
+
+
+
+
   .left-section {
       margin: 0;
       padding: 0;
       width: 100%;
   }
- 
- 
- 
- 
+
+
+
+
   .right-section {
       margin: 0;
       padding: 2.5rem;
       position: relative;
   }
- 
- 
- 
- 
+
+
+
+
   .alternate-links {
       position: absolute;
       bottom: -80px;
@@ -679,92 +699,92 @@
       gap: 0.5rem;
       font-size: 12px;
   }
- 
- 
- 
- 
+
+
+
+
   .right-section h2 {
       font-size: 25px;
       margin-bottom: 5px;
   }
- 
- 
- 
- 
+
+
+
+
   .right-section p {
       font-size: 16px;
   }
- 
- 
- 
- 
+
+
+
+
   .right-section input,
   .right-section select{
       padding: 0.2rem;
   }
- 
- 
- 
- 
+
+
+
+
   .right-section label {
       font-size: 12px;
   }
- 
- 
- 
- 
+
+
+
+
   .form-btn-1 {
       font-size: 12px;
   }
- 
- 
- 
- 
+
+
+
+
   .form-btn-2 {
       padding: 0.5rem;
       width: 180px;
       font-size: 12px;
   }
- 
- 
- 
- 
+
+
+
+
   .form-btn-3 {
       font-size: 12px;
   }
- 
- 
- 
- 
+
+
+
+
   .forgot {
     font-size: 12px;
   }
- 
- 
- 
- 
+
+
+
+
   .captcha .generated {
       padding: 0.6rem 1rem;
       font-size: 1rem;
       min-width: 120px;
   }
- 
- 
- 
- 
+
+
+
+
   .captcha-container {
       gap: 0.3rem;
   }
- 
- 
- 
- 
- }
- 
- 
- 
- 
- @media screen and (max-width: 480px) {
+
+
+
+
+}
+
+
+
+
+@media screen and (max-width: 480px) {
   .login-container, .signup-container, .accesscode-container, .petinfo-container {
       flex-direction: column;
       padding: 1rem;
@@ -773,45 +793,45 @@
       min-height: 100vh;
       margin-top: 4rem;
   }
- 
- 
- 
- 
+
+
+
+
   .left-section h1 {
       font-size: 30px;
       text-align: center;
       margin-top: 1rem;
       margin-bottom: 20px;
   }
- 
- 
- 
- 
+
+
+
+
   .left-section br {
       display: none;
   }
- 
- 
- 
- 
+
+
+
+
   .left-section {
       margin: 0;
       padding: 0;
       width: 100%;
   }
- 
- 
- 
- 
+
+
+
+
   .right-section {
       margin: 0;
       padding: 2rem;
       position: relative;
   }
- 
- 
- 
- 
+
+
+
+
   .alternate-links {
       position: absolute;
       bottom: -80px;
@@ -824,88 +844,88 @@
       gap: 0.5rem;
       font-size: 12px;
   }
- 
- 
- 
- 
+
+
+
+
   .right-section h2 {
       font-size: 25px;
       margin-bottom: 5px;
   }
- 
- 
- 
- 
+
+
+
+
   .right-section p {
       font-size: 16px;
   }
- 
- 
- 
- 
+
+
+
+
   .right-section input,
   .right-section select {
       padding: 0.2rem;
   }
- 
- 
- 
- 
+
+
+
+
   .right-section label {
       font-size: 12px;
   }
- 
- 
- 
- 
+
+
+
+
   .form-btn-1 {
       font-size: 12px;
   }
- 
- 
- 
- 
+
+
+
+
   .form-btn-2 {
       padding: 0.5rem;
       width: 180px;
       font-size: 12px;
   }
- 
- 
- 
- 
+
+
+
+
   .form-btn-3 {
       font-size: 12px;
   }
- 
- 
- 
- 
+
+
+
+
   .forgot {
     font-size: 12px;
   }
-   .captcha .generated {
+  .captcha .generated {
     padding: 0.5rem 0.8rem;
     font-size: 0.9rem;
     min-width: 100px;
   }
- 
- 
- 
- 
+
+
+
+
   .captcha-container {
       gap: 0.2rem;
   }
- 
- 
- 
- 
- }
- 
- 
- 
- 
- @media screen and (max-width: 320px) {
+
+
+
+
+}
+
+
+
+
+@media screen and (max-width: 320px) {
   .login-container, .signup-container, .accesscode-container, .petinfo-container {
       flex-direction: column;
       padding: 1rem;
@@ -914,45 +934,45 @@
       min-height: 100vh;
       margin-top: 4rem;
   }
- 
- 
- 
- 
+
+
+
+
   .left-section h1 {
       font-size: 30px;
       text-align: center;
       margin-top: 1rem;
       margin-bottom: 20px;
   }
- 
- 
- 
- 
+
+
+
+
   .left-section br {
       display: none;
   }
- 
- 
- 
- 
+
+
+
+
   .left-section {
       margin: 0;
       padding: 0;
       width: 100%;
   }
- 
- 
- 
- 
+
+
+
+
   .right-section {
       margin: 0;
       padding: 2rem;
       position: relative;
   }
- 
- 
- 
- 
+
+
+
+
   .alternate-links {
       position: absolute;
       bottom: -80px;
@@ -965,82 +985,82 @@
       gap: 0.5rem;
       font-size: 12px;
   }
- 
- 
- 
- 
+
+
+
+
   .right-section h2 {
       font-size: 25px;
       margin-bottom: 5px;
   }
- 
- 
- 
- 
+
+
+
+
   .right-section p {
       font-size: 16px;
   }
- 
- 
- 
- 
+
+
+
+
   .right-section input,
   .right-section select {
       padding: 0.2rem;
   }
- 
- 
- 
- 
+
+
+
+
   .right-section label {
       font-size: 12px;
   }
- 
- 
- 
- 
+
+
+
+
   .form-btn-1 {
       font-size: 12px;
   }
- 
- 
- 
- 
+
+
+
+
   .form-btn-2 {
       padding: 0.5rem;
       width: 180px;
       font-size: 12px;
   }
- 
- 
- 
- 
+
+
+
+
   .form-btn-3 {
       font-size: 12px;
   }
- 
- 
- 
- 
+
+
+
+
   .forgot {
     font-size: 12px;
   }
-   .captcha {
+  .captcha {
     font-size: 12px;
   }
- 
- 
- 
- 
- }
- .required-asterisk {
+
+
+
+
+}
+.required-asterisk {
   color: #FF0000;
   margin-left: -3px;
- }
- 
- 
- 
- 
- 
- 
+}
+
+
+
+
+
+
 

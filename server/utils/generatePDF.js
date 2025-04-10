@@ -1,375 +1,515 @@
 const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const path = require('path');
-const db = require('../config/db');
-
+const db = require('../config/db'); 
 
 async function generatePdf(petId, recordId) {
-    try {
-        console.log("Generating PDF for pet ID:", petId);
-    
-        // First, fetch the pet data to get the record date
+    let pdfPath = null;
+    let stream = null;
+
+    try { 
         const dateQuery = `
-            SELECT p.pet_id, p.pet_name, r.record_date
+            SELECT p.pet_name, r.record_date
             FROM pet_info p
-            LEFT JOIN record_info r ON p.pet_id = r.pet_id
-            WHERE p.pet_id = ?
-            ORDER BY r.record_date DESC
+            JOIN record_info r ON p.pet_id = r.pet_id
+            WHERE p.pet_id = ? AND r.record_id = ?
             LIMIT 1
         `;
-    
-        const [initialData] = await db.query(dateQuery, [petId]);
-        const pData = initialData.length > 0 ? initialData[0] : null;
-    
-        if (!pData) {
-            console.error("No pet record found for ID:", petId);
-            throw new Error("Pet record not found");
+        const [initialData] = await db.query(dateQuery, [petId, recordId]);
+        const pDataForFilename = initialData.length > 0 ? initialData[0] : null;
+
+        if (!pDataForFilename) {
+            throw new Error("Pet or Record not found for filename generation.");
         }
-    
-        // Format the date for the filename (YYYY-MM-DD format works well for filenames)
-        const recordDate = pData.record_date ? new Date(pData.record_date) : new Date();
-        // Format the date manually to avoid timezone issues
+
+        // Filename and Path setup 
+        const recordDate = pDataForFilename.record_date ? new Date(pDataForFilename.record_date) : new Date();
         const year = recordDate.getFullYear();
-        const month = String(recordDate.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+        const month = String(recordDate.getMonth() + 1).padStart(2, '0');
         const day = String(recordDate.getDate()).padStart(2, '0');
         const formattedDate = `${year}-${month}-${day}`;
-        
-        // Create the base filename using pet name and date
-        const baseFilename = `${pData.pet_name}_Medical_Record_${formattedDate}`;
-        const sanitizedFilename = baseFilename.replace(/[^a-z0-9_-]/gi, '_'); // Sanitize for safe filenames
-        
+        const baseFilename = `${pDataForFilename.pet_name || 'Pet'}_Medical_Record_${formattedDate}`;
+        const sanitizedFilename = baseFilename.replace(/[^a-z0-9_-]/gi, '_');
         const baseDir = path.join(__dirname, '../generated_pdfs');
-        
-        // Ensure the directory exists
         if (!fs.existsSync(baseDir)) {
             fs.mkdirSync(baseDir, { recursive: true });
         }
-        
-        // Find a unique filename
         let counter = 0;
         let finalFilename = `${sanitizedFilename}.pdf`;
-        let pdfPath = path.join(baseDir, finalFilename);
-        
+        pdfPath = path.join(baseDir, finalFilename);
         while (fs.existsSync(pdfPath)) {
             counter++;
-            finalFilename = `${sanitizedFilename} (${counter}).pdf`;
+            finalFilename = `${sanitizedFilename}(${counter}).pdf`;
             pdfPath = path.join(baseDir, finalFilename);
-        }
-        
-        console.log("Saving PDF to:", pdfPath);
-    
-        // Create a new PDF document with appropriate margins
-        const doc = new PDFDocument({ 
+        } 
+
+
+        // Create PDF Document 
+        const doc = new PDFDocument({
             margin: 50,
-            size: 'A4',
-            autoFirstPage: true
+            size: 'legal',
+            autoFirstPage: false,
+            bufferPages: true
         });
-        
-        // Rest of your PDF generation code remains the same...
-        
-        const stream = fs.createWriteStream(pdfPath);
+
+        stream = fs.createWriteStream(pdfPath);
         doc.pipe(stream);
 
-        console.log("Fetching pet details for pet_id:", petId);
+        // Fetch Full Pet and Record Data  
         const petQuery = `
-            SELECT p.pet_id, p.pet_name, p.pet_breed, p.pet_birthday, p.pet_age_year, p.pet_age_month, 
+            SELECT p.pet_id, p.pet_name, p.pet_breed, p.pet_birthday, p.pet_age_year, p.pet_age_month,
                 p.pet_gender, p.pet_color, p.pet_vitality, p.pet_status,
                 ps.spec_description AS species,
                 o.owner_address, o.owner_alt_person1, o.owner_alt_contact1, o.owner_alt_person2, o.owner_alt_contact2,
                 u.user_firstname, u.user_lastname, u.user_email, u.user_contact,
-                r.record_date, r.record_condition, r.record_symptom, r.record_temp, r.record_weight, 
+                r.record_id, r.record_date, r.record_condition, r.record_symptom, r.record_temp, r.record_weight,
                 r.record_recent_visit, r.record_purpose, r.record_purchase, r.record_lab_file,
                 s.surgery_type, s.surgery_date, s.surgery_id,
                 d.diagnosis_text,
-                l.lab_description, 
-                vi.vax_type AS vaccine_type, v.imm_rec_date AS vaccine_date, v.imm_rec_quantity AS vaccine_doses
-            FROM pet_info p
+                lab.lab_description,
+                vax.vax_type AS vaccine_type, imm.imm_rec_date AS vaccine_date, imm.imm_rec_quantity AS vaccine_doses
+            FROM record_info r
+            JOIN pet_info p ON r.pet_id = p.pet_id
             JOIN users u ON p.user_id = u.user_id
             JOIN owner o ON u.user_id = o.user_id
             LEFT JOIN match_pet_species mps ON p.pet_id = mps.pet_id
             LEFT JOIN pet_species ps ON mps.spec_id = ps.spec_id
-            LEFT JOIN record_info r ON p.pet_id = r.pet_id
             LEFT JOIN surgery_info s ON r.surgery_id = s.surgery_id
             LEFT JOIN diagnosis d ON r.diagnosis_id = d.diagnosis_id
             LEFT JOIN match_rec_lab mrl ON r.record_id = mrl.record_id
-            LEFT JOIN lab_info l ON mrl.lab_id = l.lab_id
-            LEFT JOIN immunization_record v ON p.pet_id = v.pet_id
-            LEFT JOIN vax_info vi ON v.vax_id = vi.vax_id
+            LEFT JOIN lab_info lab ON mrl.lab_id = lab.lab_id
+            LEFT JOIN immunization_record imm ON p.pet_id = imm.pet_id
+            LEFT JOIN vax_info vax ON imm.vax_id = vax.vax_id
             WHERE p.pet_id = ? AND r.record_id = ?
+            ORDER BY imm.imm_rec_date DESC
         `;
-
         const [rows] = await db.query(petQuery, [petId, recordId]);
-        console.log("Raw Query Result:", rows);
 
-        const petData = rows.length > 0 ? rows[0] : null;
-
-        console.log("DEBUG: record_lab_file type:", typeof petData.record_lab_file);
-        console.log("DEBUG: record_lab_file content:", petData.record_lab_file);
-
-        if (!petData) {
-            console.error("No pet record found for ID:", petId);
-            throw new Error("Pet record not found");
+        if (rows.length === 0) {
+            throw new Error("Pet record details not found after query.");
         }
-        console.log("Pet data retrieved:", petData);
-
-
-        // Get unique vaccine records
-        const vaccineRecords = rows.filter(row => row.vaccine_type).reduce((acc, row) => {
-            if (!acc.some(v => v.vaccine_type === row.vaccine_type)) {
-                acc.push({
-                    vaccine_type: row.vaccine_type,
-                    vaccine_date: row.vaccine_date ? new Date(row.vaccine_date).toLocaleDateString() : 'N/A',
-                    vaccine_doses: row.vaccine_doses || 'N/A'
-                });
+        const petData = rows[0];  
+        const uniqueVaccines = new Map();
+        rows.forEach(row => {
+            if (row.vaccine_type && row.vaccine_date) {
+                const key = `${row.vaccine_type}-${new Date(row.vaccine_date).toISOString()}`;
+                if (!uniqueVaccines.has(key)) {
+                    uniqueVaccines.set(key, {
+                        vaccine_type: row.vaccine_type,
+                        vaccine_date: new Date(row.vaccine_date).toLocaleDateString(),
+                        vaccine_doses: row.vaccine_doses || 'N/A'
+                    });
+                }
             }
-            return acc;
-        }, []);
-
-        // Page layout parameters
-        const leftColumnX = 50;
-        const rightColumnX = 300;
-        const labelWidth = 120; // Increased label width for proper alignment
-        const pageWidth = doc.page.width - 100; // Total usable width accounting for margins
-        const centerX = doc.page.width / 2;
-        const contentWidth = doc.page.width - 100; // Total width minus margins
-
-        // Function to add a consistent header across all pages
-        function addHeader(doc) {
-            const logoPath = path.join(__dirname, '../assets/clinic_logo.png');
-            if (fs.existsSync(logoPath)) {
-                doc.image(logoPath, 50, 35, { width: 50 }); // Updated Y position to align with text
-            }
-
-            // Set up fonts - making sure we have a bold font available
-            doc.registerFont('Helvetica-Bold', 'Helvetica-Bold');
-
-            doc.font('Helvetica-Bold').fontSize(16).text('Kho Veterinary Clinic', 110, 50)
-            .font('Helvetica').fontSize(10).text('715 Earnshaw St., Sampaloc, Manila, 1008 Metro Manila', 110, 70);
-            
-            doc.moveDown(3);
-        }
-
-        // Add header to the first page
-        addHeader(doc);
-
-        // Title section - centered properly with specified width
-        doc.font('Helvetica-Bold').fontSize(16)
-        .text('MEDICAL RECORD', 50, doc.y, { align: 'center', width: contentWidth })
-        .moveDown(0.5)
-        .font('Helvetica').fontSize(10)
-        .text(`Date of Record: ${petData.record_date ? new Date(petData.record_date).toLocaleDateString() : 'N/A'}`, 50, doc.y, { align: 'center', width: contentWidth })
-        .moveDown();
-
-        // Helper function for text with consistent label formatting
-        const addLabeledText = (label, value, x, y, options = {}) => {
-            doc.font('Helvetica-Bold').fontSize(10)
-            .text(`${label}:`, x, y, { ...options, continued: true });
-            
-            doc.font('Helvetica').fontSize(10)
-            .text(` ${value || 'N/A'}`);
-            
-            return doc.y;
-        };
-
-        // Helper function for section headers - ensuring left alignment
-        const addSectionHeader = (text) => {
-            doc.font('Helvetica-Bold').fontSize(14).text(text, leftColumnX, doc.y, { align: 'left' });
-            doc.moveDown(0.5);
-            
-            // Draw a line to separate header from content
-            doc.moveTo(leftColumnX, doc.y).lineTo(leftColumnX + pageWidth, doc.y).stroke();
-            doc.moveDown(0.5);
-        };
-
-        // Pet Profile section with left-aligned header
-        addSectionHeader('Pet Profile');
-        
-        let leftY = doc.y;
-        let rightY = doc.y;
-        
-        // Left column items - keeping labels on left
-        leftY = addLabeledText('ID', petData.pet_id, leftColumnX, leftY);
-        leftY = addLabeledText('Name', petData.pet_name, leftColumnX, leftY + 5);
-        leftY = addLabeledText('Species', petData.species, leftColumnX, leftY + 5);
-        leftY = addLabeledText('Breed', petData.pet_breed, leftColumnX, leftY + 5);
-        leftY = addLabeledText('Gender', petData.pet_gender, leftColumnX, leftY + 5);
-        
-        // Right column items - keeping labels on left of column
-        rightY = addLabeledText('Birthday', petData.pet_birthday ? new Date(petData.pet_birthday).toLocaleDateString() : 'N/A', rightColumnX, rightY);
-        rightY = addLabeledText('Age', `${petData.pet_age_year || '0'} years, ${petData.pet_age_month || '0'} months`, rightColumnX, rightY + 5);
-        rightY = addLabeledText('Color', petData.pet_color, rightColumnX, rightY + 5);
-        rightY = addLabeledText('Status', petData.pet_vitality ? 'Alive' : 'Dead', rightColumnX, rightY + 5);
-        
-        // Make sure we continue from the lowest point
-        doc.y = Math.max(leftY, rightY) + 15;
-        
-        // Contact Details section with left-aligned header
-        addSectionHeader('Contact Details');
-        
-        leftY = doc.y;
-        rightY = doc.y;
-        
-        // Left column items
-        leftY = addLabeledText('Owner', `${petData.user_firstname} ${petData.user_lastname}`, leftColumnX, leftY);
-        leftY = addLabeledText('Email', petData.user_email, leftColumnX, leftY + 5);
-        leftY = addLabeledText('Emergency Contact 1', `${petData.owner_alt_person1 || 'N/A'} - ${petData.owner_alt_contact1 || 'N/A'}`, leftColumnX, leftY + 5);
-        leftY = addLabeledText('Emergency Contact 2', `${petData.owner_alt_person2 || 'N/A'} - ${petData.owner_alt_contact2 || 'N/A'}`, leftColumnX, leftY + 5);
-        
-        // Right column items
-        rightY = addLabeledText('Contact number', petData.user_contact, rightColumnX, rightY);
-        rightY = addLabeledText('Address', petData.owner_address, rightColumnX, rightY + 5);
-        
-        // Continue from the lowest point
-        doc.y = Math.max(leftY, rightY) + 15;
-        
-        // Vaccination Record as table with left-aligned header
-        addSectionHeader('Vaccination Record');
-        
-        // Create table headers
-        const tableTop = doc.y;
-        const tableWidth = pageWidth;
-        const colWidth1 = tableWidth * 0.55; // 55% for vaccine type
-        const colWidth2 = tableWidth * 0.2; // 20% for doses
-        const colWidth3 = tableWidth * 0.25; // 25% for date
-        const rowHeight = 25;
-        
-        // Table header
-        doc.rect(leftColumnX, tableTop, tableWidth, rowHeight).stroke();
-        
-        // Vertical lines for column separation
-        doc.moveTo(leftColumnX + colWidth1, tableTop).lineTo(leftColumnX + colWidth1, tableTop + rowHeight).stroke();
-        doc.moveTo(leftColumnX + colWidth1 + colWidth2, tableTop).lineTo(leftColumnX + colWidth1 + colWidth2, tableTop + rowHeight).stroke();
-        
-        doc.font('Helvetica-Bold').fontSize(10)
-        .text('Type of Vaccine', leftColumnX + 5, tableTop + 9, { width: colWidth1 - 10, align: 'center' })
-        .text('Number of Doses', leftColumnX + colWidth1 + 5, tableTop + 9, { width: colWidth2 - 10, align: 'center' })
-        .text('Date', leftColumnX + colWidth1 + colWidth2 + 5, tableTop + 9, { width: colWidth3 - 10, align: 'center' });
-        
-        // Table rows
-        let rowY = tableTop + rowHeight;
-        
-        if (vaccineRecords.length > 0) {
-            vaccineRecords.forEach((vaccine) => {
-                doc.rect(leftColumnX, rowY, tableWidth, rowHeight).stroke();
-                
-                // Add vertical lines for column separation
-                doc.moveTo(leftColumnX + colWidth1, rowY).lineTo(leftColumnX + colWidth1, rowY + rowHeight).stroke();
-                doc.moveTo(leftColumnX + colWidth1 + colWidth2, rowY).lineTo(leftColumnX + colWidth1 + colWidth2, rowY + rowHeight).stroke();
-                
-                doc.font('Helvetica').fontSize(10)
-                .text(vaccine.vaccine_type || 'N/A', leftColumnX + 5, rowY + 9, { width: colWidth1 - 10 })
-                .text(vaccine.vaccine_doses, leftColumnX + colWidth1 + 5, rowY + 9, { width: colWidth2 - 10, align: 'center' })
-                .text(vaccine.vaccine_date, leftColumnX + colWidth1 + colWidth2 + 5, rowY + 9, { width: colWidth3 - 10, align: 'center' });
-                
-                rowY += rowHeight;
-            });
-        } else {
-            doc.rect(leftColumnX, rowY, tableWidth, rowHeight).stroke();
-            doc.fontSize(10).text('No vaccination records', leftColumnX + 10, rowY + 9, { width: tableWidth - 20, align: 'center' });
-            rowY += rowHeight;
-        }
-        
-        // Continue after the table
-        doc.y = rowY + 15;
-        
-        // Check if we need a new page before Medical Information
-        if (doc.y > doc.page.height - 150) {
-            doc.addPage();
-            // Add header to new page - using the function for consistency
-            addHeader(doc);
-        }
-        
-        // Medical Information section with left-aligned header
-        addSectionHeader('Medical Information');
-        
-        leftY = doc.y;
-        rightY = doc.y;
-        
-        // Left column items
-        leftY = addLabeledText('Weight', petData.record_weight, leftColumnX, leftY);
-        leftY = addLabeledText('Temperature', petData.record_temp, leftColumnX, leftY + 5);
-        leftY = addLabeledText('Condition', petData.record_condition, leftColumnX, leftY + 5);
-        leftY = addLabeledText('Symptoms', petData.record_symptom, leftColumnX, leftY + 5);
-        leftY = addLabeledText('Laboratories', petData.lab_description, leftColumnX, leftY + 5);
-        
-        // Right column items
-        rightY = addLabeledText('Has past surgeries', petData.surgery_id ? 'Yes' : 'No', rightColumnX, rightY);
-        rightY = addLabeledText('Date of surgery', petData.surgery_date ? new Date(petData.surgery_date).toLocaleDateString() : 'N/A', rightColumnX, rightY + 5);
-        rightY = addLabeledText('Type of surgery', petData.surgery_type, rightColumnX, rightY + 5);
-        
-        // Continue from the lowest point
-        doc.y = Math.max(leftY, rightY) + 15;
-        
-        // Check if we need a new page before Latest Diagnosis
-        if (doc.y > doc.page.height - 150) {
-            doc.addPage();
-            // Add header to new page - using the function for consistency
-            addHeader(doc);
-        }
-        
-        // Latest Diagnosis section with left-aligned header
-        addSectionHeader('Latest Diagnosis');
-        
-        // Add the diagnosis text with wrapping
-        doc.font('Helvetica').fontSize(10).text(petData.diagnosis_text || 'N/A', {
-            width: pageWidth,
-            align: 'left'
         });
-        
-        doc.moveDown(1.5);
-        
-        // Check if we need a new page before Visit Details
-        if (doc.y > doc.page.height - 150) {
-            doc.addPage();
-            // Add header to new page - using the function for consistency
-            addHeader(doc);
+        const vaccineRecords = Array.from(uniqueVaccines.values());
+        vaccineRecords.sort((a, b) => new Date(a.vaccine_date) - new Date(b.vaccine_date));
+
+
+        // Helper Functions 
+        function addHeader(docInstance) {
+            const logoPath = path.join(__dirname, '../assets/clinic_logo.png');
+            try {
+                if (fs.existsSync(logoPath)) {
+                    docInstance.image(logoPath, docInstance.page.margins.left || 50, 35, { width: 50 });
+                } else { console.warn("Logo file not found at:", logoPath); }
+            } catch (imgErr) { console.error("Error loading logo image:", imgErr); }
+
+            const headerTextX = (docInstance.page.margins.left || 50) + 60;
+            docInstance.fillColor('black')
+                    .font('Helvetica-Bold').fontSize(16).text('Kho Veterinary Clinic', headerTextX, 50)
+                    .font('Helvetica').fontSize(10).text('715 Earnshaw St., Sampaloc, Manila, 1008 Metro Manila', headerTextX, 70);
+            docInstance.fillColor('black');
         }
-        
-        // Visit Details section with left-aligned header
-        addSectionHeader('Visit Details');
-        
-        // Add visit details
-        let y = doc.y;
-        y = addLabeledText('Recent Visit', petData.record_recent_visit ? new Date(petData.record_recent_visit).toLocaleDateString() : 'N/A', leftColumnX, y);
-        y = addLabeledText('Purpose of Visit', petData.record_purpose, leftColumnX, y + 5);
-        y = addLabeledText('Recent Purchase', petData.record_purchase, leftColumnX, y + 5);
-        
-        doc.moveDown(1.5);
-        
-        // Check if we need a new page before Attached Lab File
-        if (doc.y > doc.page.height - 100) {
-            doc.addPage();
-            // Add header to new page - using the function for consistency
-            addHeader(doc);
+ 
+        function addFooter(docInstance) {
+            const pageIndex = docInstance.bufferedPageRange().start; 
+            const pageHeight = docInstance.page.height;
+            const bottomMargin = docInstance.page.margins.bottom || 50;
+            const footerY = pageHeight - bottomMargin - 30;
+            const footerText = "This record is not valid for other medical use and cannot be used by any other establishment, not unless it is approved by a veterinarian of Kho Veterinary Clinic.";
+ 
+            if (footerY <= (docInstance.page.margins.top || 50)) {
+                console.error(`      Error: Calculated footer Y (${footerY}) is too low or negative.`);
+                return;
+            }
+
+            docInstance.save();
+            docInstance.font('Helvetica-BoldOblique')
+                        .fontSize(8)
+                        .fillColor('black')
+                        .text(footerText,
+                            docInstance.page.margins.left || 50,
+                            footerY,
+                            {
+                                width: docInstance.page.width - (docInstance.page.margins.left || 50) - (docInstance.page.margins.right || 50),
+                                align: 'center'
+                            }
+                        );
+            docInstance.restore();
         }
+
+        function addSignatureArea(docInstance) {
+            const pageIndex = docInstance.bufferedPageRange().start; 
+            const pageHeight = docInstance.page.height;
+            const bottomMargin = docInstance.page.margins.bottom || 50;
+            const rightMargin = docInstance.page.margins.right || 50;
+            const sigWidth = 220;
+            const sigHeightEstimate = 55;
+            const footerBuffer = 30;
+            const spaceAboveFooter = 15;
+
+            let sigStartY = pageHeight - bottomMargin - footerBuffer - spaceAboveFooter - sigHeightEstimate;
+            const sigX = docInstance.page.width - rightMargin - sigWidth;
+ 
+            if (sigStartY <= (docInstance.page.margins.top || 50)) {
+                    console.error(`      Error: Calculated signature Y (${sigStartY}) is too low or negative.`);
+                    return;
+            }
+
+            docInstance.save();
+            const topLabel = "*This medical record is approved by:";
+            docInstance.font('Helvetica')
+                        .fontSize(9)
+                        .fillColor('black')
+                        .text(topLabel, sigX, sigStartY, { width: sigWidth, align: 'left' });
+            let lineY = sigStartY + docInstance.heightOfString(topLabel, { fontSize: 9, width: sigWidth }) + 30;
+            docInstance.moveTo(sigX, lineY)
+                        .lineTo(sigX + sigWidth, lineY)
+                        .lineWidth(0.5)
+                        .strokeColor('black')
+                        .stroke();
+            let bottomLabelY = lineY + 5;
+            const bottomLabel = "Signature over printed name";
+            docInstance.font('Helvetica')
+                        .fontSize(9)
+                        .fillColor('black')
+                        .text(bottomLabel, sigX, bottomLabelY, { width: sigWidth, align: 'center' });
+            docInstance.restore();
+        }
+
+        const addLabeledText = (docInstance, label, value, x, y, options = {}) => {
+                const startY = y;
+                const defaultOptions = { fontSize: 10, baseline: 'top' };
+                const mergedOptions = { ...defaultOptions, ...options };
+                const effectiveColumnWidth = options.columnWidth || (docInstance.page.width / 2) - x - 10;
+                const labelText = `${label}:`;
+
+                let labelWidth;
+                if (typeof docInstance.measureString === 'function') {
+                    labelWidth = docInstance.font('Helvetica-Bold').fontSize(mergedOptions.fontSize).measureString(labelText).width;
+                } else {
+                    labelWidth = docInstance.font('Helvetica-Bold').fontSize(mergedOptions.fontSize).widthOfString(labelText);
+                }
+
+                docInstance.font('Helvetica-Bold').fontSize(mergedOptions.fontSize)
+                    .text(labelText, x, startY, { ...mergedOptions, continued: true });
+ 
+                const valueWidth = Math.max(1, effectiveColumnWidth - labelWidth - 2);  
+
+                docInstance.font('Helvetica').fontSize(mergedOptions.fontSize)
+                    .text(` ${value || 'N/A'}`, {  
+                        ...mergedOptions,
+                        width: valueWidth,  
+                        continued: false 
+                    }); 
+            return docInstance.y + 2; 
+            };
+ 
+        const addSectionHeader = (docInstance, text) => {
+             const headerHeightEstimate = 40;
+             if (docInstance.y + headerHeightEstimate > docInstance.page.height - (docInstance.page.margins.bottom || 50)) { 
+                 docInstance.addPage();
+             }
+             docInstance.moveDown(0.5);
+             docInstance.font('Helvetica-Bold').fontSize(14).fillColor('black').text(text, docInstance.page.margins.left || 50, docInstance.y, { align: 'left' });
+             docInstance.moveDown(0.5);
+             const lineY = docInstance.y;
+             docInstance.moveTo(docInstance.page.margins.left || 50, lineY)
+                .lineTo(docInstance.page.width - (docInstance.page.margins.right || 50), lineY)
+                .lineWidth(0.5).strokeColor('black').stroke();
+             docInstance.moveDown(0.5);
+         };
+
+
+        // Page Generation Logic 
+        doc.on('pageAdded', () => {
+            addHeader(doc);
+            doc.y = 100; 
+            doc.x = doc.page.margins.left || 50; 
+        });
+
+        doc.addPage(); 
+
+        // PDF Content Generation 
+        const leftMargin = doc.page.margins.left || 50;
+        const rightMargin = doc.page.margins.right || 50;
+        const contentWidth = doc.page.width - leftMargin - rightMargin;
+        const leftColumnX = leftMargin;
+        const rightColumnX = leftColumnX + contentWidth / 2 + 10; 
+        const columnWidth = contentWidth / 2 - 15; 
+
+        // Title Section
+        doc.font('Helvetica-Bold').fontSize(16)
+           .text('MEDICAL RECORD', leftMargin, doc.y, { width: contentWidth, align: 'center' })
+           .moveDown(0.5);
+        doc.font('Helvetica').fontSize(10)
+           .text(`Date of Record: ${petData.record_date ? new Date(petData.record_date).toLocaleDateString() : 'N/A'}`, leftMargin, doc.y, { width: contentWidth, align: 'center' })
+           .moveDown(1.5);
+
+        // Pet Profile Section 
+        addSectionHeader(doc, 'Pet Profile');
+        let profileLeftY = doc.y; let profileRightY = doc.y;
+        profileLeftY = addLabeledText(doc, 'ID', petData.pet_id, leftColumnX, profileLeftY, { columnWidth: columnWidth });
+        profileLeftY = addLabeledText(doc, 'Name', petData.pet_name, leftColumnX, profileLeftY, { columnWidth: columnWidth });
+        profileLeftY = addLabeledText(doc, 'Species', petData.species, leftColumnX, profileLeftY, { columnWidth: columnWidth });
+        profileLeftY = addLabeledText(doc, 'Breed', petData.pet_breed, leftColumnX, profileLeftY, { columnWidth: columnWidth }); 
+        profileLeftY = addLabeledText(doc, 'Gender', petData.pet_gender, leftColumnX, profileLeftY, { columnWidth: columnWidth });
+
+        profileRightY = addLabeledText(doc, 'Birthday', petData.pet_birthday ? new Date(petData.pet_birthday).toLocaleDateString() : 'N/A', rightColumnX, profileRightY, { columnWidth: columnWidth });
+        profileRightY = addLabeledText(doc, 'Age', `${petData.pet_age_year || '0'} years, ${petData.pet_age_month || '0'} months`, rightColumnX, profileRightY, { columnWidth: columnWidth });
+        profileRightY = addLabeledText(doc, 'Color', petData.pet_color, rightColumnX, profileRightY, { columnWidth: columnWidth }); 
+        profileRightY = addLabeledText(doc, 'Status', petData.pet_status || 'N/A', rightColumnX, profileRightY, { columnWidth: columnWidth });
+        doc.y = Math.max(profileLeftY, profileRightY);
+        doc.moveDown(1.0);
+
+        // Contact Details Section
+        addSectionHeader(doc, 'Contact Details');
+        let contactLeftY = doc.y; let contactRightY = doc.y;
+        contactLeftY = addLabeledText(doc, 'Owner', `${petData.user_firstname} ${petData.user_lastname}`, leftColumnX, contactLeftY, { columnWidth: columnWidth });
+        contactLeftY = addLabeledText(doc, 'Email', petData.user_email, leftColumnX, contactLeftY, { columnWidth: columnWidth }); 
+        contactLeftY = addLabeledText(doc, 'Emergency 1', `${petData.owner_alt_person1 || 'N/A'} - ${petData.owner_alt_contact1 || 'N/A'}`, leftColumnX, contactLeftY, { columnWidth: columnWidth }); // Will wrap if long
+        contactLeftY = addLabeledText(doc, 'Emergency 2', `${petData.owner_alt_person2 || 'N/A'} - ${petData.owner_alt_contact2 || 'N/A'}`, leftColumnX, contactLeftY, { columnWidth: columnWidth }); // Will wrap if long
+
+        contactRightY = addLabeledText(doc, 'Contact', petData.user_contact, rightColumnX, contactRightY, { columnWidth: columnWidth });
         
-        // Attached Lab File section with left-aligned header
-        addSectionHeader('Attached Lab File');
+        // Address Section
+        const addressStartY = contactRightY;
+        const addressLabel = 'Address:';
+        const addressValue = ` ${petData.owner_address || 'N/A'}`;
+        doc.font('Helvetica-Bold').fontSize(10).text(addressLabel, rightColumnX, addressStartY, { continued: true, baseline: 'top' });
+        let addressLabelWidth;
+            if (typeof doc.measureString === 'function') {
+                addressLabelWidth = doc.font('Helvetica-Bold').fontSize(10).measureString(addressLabel).width;
+            } else {
+                addressLabelWidth = doc.font('Helvetica-Bold').fontSize(10).widthOfString(addressLabel);
+            }
+        const addressValueWidth = Math.max(1, columnWidth - addressLabelWidth - 2); 
+        doc.font('Helvetica').fontSize(10).text(addressValue, {  
+            width: addressValueWidth, 
+            baseline: 'top'
+        });
+        contactRightY = doc.y + 2; 
+        doc.y = Math.max(contactLeftY, contactRightY);
+        doc.moveDown(1.0);
 
-        //if deployed on cloud, get the stored image in cloud
-        // const imageUrl = rows[0].record_lab_file;  // Assuming it's stored as a URL
-        // doc.image(imageUrl, { width: 300, height: 200 });
+        // Vaccination Record Section (Table) 
+        addSectionHeader(doc, 'Vaccination Record');
+        const tableStartY = doc.y;
+        const tableWidth = contentWidth;
+        const colWidths = [tableWidth * 0.50, tableWidth * 0.25, tableWidth * 0.25];
+        const rowHeight = 25;  
+        let tableCurrentY = tableStartY;
+ 
+        const drawTableRow = (instance, y, height) => { 
+             const tableLeftX = instance.page.margins.left || 50;
+             instance.rect(tableLeftX, y, tableWidth, height).lineWidth(0.5).strokeColor('black').stroke();
+             let currentX = tableLeftX;
+             for (let i = 0; i < colWidths.length - 1; i++) {
+                 currentX += colWidths[i];
+                 instance.moveTo(currentX, y).lineTo(currentX, y + height).stroke();
+             }
+        };
+        const addCellText = (instance, text, colIndex, y, height, align = 'left') => {  
+            let cellX = instance.page.margins.left || 50;
+            cellX += 5; 
+             for(let i=0; i < colIndex; i++) { cellX += colWidths[i]; }
+             const cellWidth = colWidths[colIndex] - 10;
+             const textY = y + 7; 
 
-        //testing in local for now
-        const imageFilename = petData.record_lab_file.toString();  
-        const imagePath = path.join(__dirname, "../uploads", imageFilename); // Adjust your storage path
-
-        if (fs.existsSync(imagePath)) {
-            doc.image(imagePath, { width: 400, height: 200 });
+             instance.font('Helvetica').fontSize(10).fillColor('black') 
+                .text(text || 'N/A', cellX, textY, { width: cellWidth, align: align, baseline: 'top' });
+        }; 
+        drawTableRow(doc, tableCurrentY, rowHeight);
+        doc.font('Helvetica-Bold').fontSize(10);
+        addCellText(doc, 'Type of Vaccine', 0, tableCurrentY, rowHeight, 'center');
+        addCellText(doc, 'Number of Doses', 1, tableCurrentY, rowHeight, 'center');
+        addCellText(doc, 'Date', 2, tableCurrentY, rowHeight, 'center');
+        tableCurrentY += rowHeight;
+ 
+        if (vaccineRecords.length > 0) {
+            vaccineRecords.forEach((vaccine, index) => {
+                 if (tableCurrentY + rowHeight > doc.page.height - (doc.page.margins.bottom || 50)) {
+                     console.log(`    Adding page break before vaccine row ${index + 1}`);
+                     doc.addPage();
+                     tableCurrentY = doc.y; 
+                 }
+                 drawTableRow(doc, tableCurrentY, rowHeight);
+                 addCellText(doc, vaccine.vaccine_type, 0, tableCurrentY, rowHeight, 'left');
+                 addCellText(doc, vaccine.vaccine_doses.toString(), 1, tableCurrentY, rowHeight, 'center');
+                 addCellText(doc, vaccine.vaccine_date, 2, tableCurrentY, rowHeight, 'center');
+                 tableCurrentY += rowHeight;
+             });
         } else {
-            doc.text("⚠️ Image file not found.");
+             if (tableCurrentY + rowHeight > doc.page.height - (doc.page.margins.bottom || 50)) {
+                 doc.addPage(); tableCurrentY = doc.y;
+             }
+             drawTableRow(doc, tableCurrentY, rowHeight);
+             addCellText(doc, 'No vaccination records found.', 0, tableCurrentY, rowHeight, 'center');
+             tableCurrentY += rowHeight;
         }
+        doc.y = tableCurrentY; 
+        doc.moveDown(1.0);
+
+
+        // Medical Information Section 
+        addSectionHeader(doc, 'Medical Information');
+        const medSectionStartY = doc.y; 
+        let medLeftY = medSectionStartY;
+        let medRightY = medSectionStartY; 
+ 
+        medLeftY = addLabeledText(doc, 'Weight', petData.record_weight ? `${petData.record_weight} kg` : 'N/A', leftColumnX, medLeftY, { columnWidth: columnWidth });
+        medLeftY = addLabeledText(doc, 'Temperature', petData.record_temp ? `${petData.record_temp} °C` : 'N/A', leftColumnX, medLeftY, { columnWidth: columnWidth });
+ 
+        const conditionStartY = medLeftY;
+        const conditionLabel = 'Condition:';
+        const conditionValue = ` ${petData.record_condition || 'N/A'}`;  
+        doc.font('Helvetica-Bold').fontSize(10).text(conditionLabel, leftColumnX, conditionStartY, { continued: true, baseline: 'top' });
+        let conditionLabelWidth;
+         if (typeof doc.measureString === 'function') {
+             conditionLabelWidth = doc.font('Helvetica-Bold').fontSize(10).measureString(conditionLabel).width;
+         } else {
+             conditionLabelWidth = doc.font('Helvetica-Bold').fontSize(10).widthOfString(conditionLabel);
+         }
+        const conditionValueWidth = Math.max(1, columnWidth - conditionLabelWidth - 2);
+        doc.font('Helvetica').fontSize(10).text(conditionValue, { 
+            width: conditionValueWidth,
+            baseline: 'top'
+        });
+        medLeftY = doc.y + 2; 
         
+        const symptomsStartY = medLeftY;
+        const symptomsLabel = 'Symptoms:';
+        const symptomsValue = ` ${petData.record_symptom || 'N/A'}`;    
+        doc.font('Helvetica-Bold').fontSize(10).text(symptomsLabel, leftColumnX, symptomsStartY, { continued: true, baseline: 'top' });
+        let symptomsLabelWidth;
+         if (typeof doc.measureString === 'function') {
+             symptomsLabelWidth = doc.font('Helvetica-Bold').fontSize(10).measureString(symptomsLabel).width;
+         } else {
+             symptomsLabelWidth = doc.font('Helvetica-Bold').fontSize(10).widthOfString(symptomsLabel);
+         }
+        const symptomsValueWidth = Math.max(1, columnWidth - symptomsLabelWidth - 2);
+        doc.font('Helvetica').fontSize(10).text(symptomsValue, {    
+            width: symptomsValueWidth,  
+            baseline: 'top'
+        });
+        medLeftY = doc.y + 2;   
+
+        medLeftY = addLabeledText(doc, 'Laboratories', petData.lab_description || 'N/A', leftColumnX, medLeftY, { columnWidth: columnWidth });
+
+        medLeftY = addLabeledText(doc, 'Surgery History', petData.surgery_id ? 'Yes' : 'No', leftColumnX, medLeftY, { columnWidth: columnWidth });
+         if (petData.surgery_id) {
+            medLeftY = addLabeledText(doc, 'Surgery Date', petData.surgery_date ? new Date(petData.surgery_date).toLocaleDateString() : 'N/A', leftColumnX, medLeftY, { columnWidth: columnWidth });
+            medLeftY = addLabeledText(doc, 'Surgery Type', petData.surgery_type || 'N/A', leftColumnX, medLeftY, { columnWidth: columnWidth });
+         }
+
+        doc.y = Math.max(medLeftY, medRightY);
+        doc.moveDown(1.0);
+
+
+        // Latest Diagnosis Section
+        addSectionHeader(doc, 'Latest Diagnosis');
+        doc.font('Helvetica').fontSize(10).fillColor('black')
+           .text(petData.diagnosis_text || 'No diagnosis recorded.', leftMargin, doc.y, {
+               width: contentWidth, 
+               align: 'left'
+           });
+        doc.moveDown(1.0);
+
+        addSectionHeader(doc, 'Visit Details');
+        let visitY = doc.y;
+        visitY = addLabeledText(doc, 'Last Visit', petData.record_recent_visit ? new Date(petData.record_recent_visit).toLocaleDateString() : 'N/A', leftColumnX, visitY, { columnWidth: contentWidth });
+        visitY = addLabeledText(doc, 'Purpose', petData.record_purpose || 'N/A', leftColumnX, visitY, { columnWidth: contentWidth }); 
+        visitY = addLabeledText(doc, 'Recent Purchase', petData.record_purchase || 'N/A', leftColumnX, visitY, { columnWidth: contentWidth });
+        doc.y = visitY;
+        doc.moveDown(1.0);
+
+        if (petData.record_lab_file) {
+            const imageFilename = petData.record_lab_file.toString().trim();
+            const imagePath = path.join(__dirname, "../uploads", imageFilename);
+            console.log("Attempting to attach image from path:", imagePath);
+
+            if (fs.existsSync(imagePath)) {
+                const imageSpaceEstimate = 250 + 50;
+                if (doc.y + imageSpaceEstimate > doc.page.height - (doc.page.margins.bottom || 50)) {
+                    console.log("--- Adding page before image");
+                    doc.addPage();
+                    addSectionHeader(doc, 'Attached Lab File');
+                }
+                try {
+                   const imgOptions = { fit: [contentWidth * 0.8, 250], align: 'center' };
+                   const imgWidth = imgOptions.fit[0];
+                   const imgX = leftMargin + (contentWidth - imgWidth) / 2;
+                   doc.image(imagePath, imgX, doc.y, imgOptions);
+                   doc.moveDown(1.0);
+                } catch (imgError) {
+                    console.error("Error embedding image:", imgError);
+                    doc.font('Helvetica').fontSize(10).fillColor('red').text('Error embedding attached lab file.', leftMargin, doc.y, { width: contentWidth });
+                    doc.moveDown(1.0);
+                }
+            } else {
+                console.warn("Lab file specified but not found at path:", imagePath);
+            }
+        } else {
+            console.log("No lab file attached to this record.");
+        }
+ 
+        console.log("--- Starting Final Elements Addition ---");
+        const pageCount = doc.bufferedPageRange().count;
+        console.log(`   Document has ${pageCount} pages.`);
+
+        for (let i = 0; i < pageCount; i++) {
+            doc.switchToPage(i);
+            console.log(`   Switched to page ${i}`);
+            addFooter(doc); 
+            if (i === pageCount - 1) { 
+                const estimatedSigHeight = 70; 
+                if (doc.y + estimatedSigHeight > doc.page.height - (doc.page.margins.bottom || 50) - 30 ) { 
+                    console.warn(`   Signature might overlap on page ${i}. Consider adding space or manual page break earlier.`);
+                }
+                addSignatureArea(doc);
+            }
+        } 
+
+
+        // Finalize PDF 
         doc.end();
 
         await new Promise((resolve, reject) => {
-            stream.on('finish', resolve);
-            stream.on('error', reject);
+            stream.on('finish', () => { 
+                resolve();
+            });
+            stream.on('error', (err) => {
+                console.error("PDF stream writing error:", err);
+                reject(err);
+            });
         });
 
-
         return pdfPath;
+
     } catch (error) {
+        console.error("Error in generatePdf function:", error);
+        if (stream && !stream.closed) {
+            stream.end(() => { 
+                if (pdfPath && fs.existsSync(pdfPath)) {
+                    try { fs.unlinkSync(pdfPath); console.log("Partial PDF file deleted."); }
+                    catch (e) { console.error("Error deleting partial PDF file:", e); }
+                }
+            });
+        } else if (pdfPath && fs.existsSync(pdfPath)) {
+                try { fs.unlinkSync(pdfPath); console.log("Partial PDF file deleted."); }
+                catch (e) { console.error("Error deleting partial PDF file:", e); }
+        }
         throw error;
     }
 }

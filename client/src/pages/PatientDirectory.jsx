@@ -1,17 +1,17 @@
-"use client"
+"use client";
 
-import { Search, Archive, ArrowRight, Filter } from "lucide-react"
-import { useNavigate } from "react-router-dom"
-import { useState, useEffect, useCallback } from "react"
-import "../css/PatientDirectory.css"
-import { useConfirmDialog } from "../contexts/ConfirmDialogContext"
-import FilterModal from "../components/FilterPopup"
+import { Search, Archive, ArrowRight, Filter } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useCallback } from "react";
+import "../css/PatientDirectory.css";
+import { useConfirmDialog } from "../contexts/ConfirmDialogContext";
+import FilterModal from "../components/FilterPopup";
 
 export default function PatientDirectory() {
-  const { showConfirmDialog } = useConfirmDialog()
-  const navigate = useNavigate()
-  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
-  const [activeFilters, setActiveFilters] = useState(null)
+  const { showConfirmDialog } = useConfirmDialog();
+  const navigate = useNavigate();
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [activeFilters, setActiveFilters] = useState(null);
   const [originalPatients, setOriginalPatients] = useState([]);
   const [patients, setPatients] = useState([]);
 
@@ -27,8 +27,8 @@ export default function PatientDirectory() {
       console.error("Error during server logout request:", error);
       // Proceed with client-side logout even if server request fails
     } finally {
-        console.log("Redirecting to /login");
-        navigate("/login", { replace: true }); // Use replace to prevent going back to the expired page
+      console.log("Redirecting to /login");
+      navigate("/login", { replace: true }); // Use replace to prevent going back to the expired page
     }
   }, [navigate]);
 
@@ -38,22 +38,17 @@ export default function PatientDirectory() {
         window.location.pathname === "/login" ||
         window.location.pathname === "/signup-employee" ||
         window.location.pathname === "/signup-employee-accesscode"
-
-
       ) {
         logout();
       }
     };
 
-
     window.onpopstate = handleBackButton;
-
 
     return () => {
       window.onpopstate = null;
     };
   }, [logout]);
-
 
   useEffect(() => {
     const fetchActivePets = async () => {
@@ -67,7 +62,9 @@ export default function PatientDirectory() {
         });
 
         if (response.status === 401) {
-          console.warn("Session expired (401 Unauthorized) during password change. Logging out...");
+          console.warn(
+            "Session expired (401 Unauthorized) during password change. Logging out..."
+          );
           await logout(); // Call logout function
           return; // Stop further processing in this function
         }
@@ -91,100 +88,127 @@ export default function PatientDirectory() {
   }, [logout]);
 
   const handleArchive = (petId) => {
-  showConfirmDialog("Are you sure you want to archive this record?", async () => {
-    try {
-      const response = await fetch(`http://localhost:5000/pets/archive/${petId}`, {
-        method: "PUT",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+    showConfirmDialog(
+      "Are you sure you want to archive this pet?",
+      async () => {
+        try {
+          const response = await fetch(
+            `http://localhost:5000/pets/archive/${petId}`,
+            {
+              method: "PUT",
+              credentials: "include",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          );
 
-      if (response.status === 401) {
-        console.warn("Session expired (401 Unauthorized) during password change. Logging out...");
-        await logout(); // Call logout function
-        return; // Stop further processing in this function
+          if (response.status === 401) {
+            console.warn(
+              "Session expired (401 Unauthorized) during password change. Logging out..."
+            );
+            await logout(); // Call logout function
+            return; // Stop further processing in this function
+          }
+
+          if (!response.ok) {
+            throw new Error("Failed to archive pet.");
+          }
+
+          const data = await response.json();
+          console.log(data.message);
+
+          // Update the patients list to remove the archived pet
+          setPatients((prevPatients) =>
+            prevPatients.filter((patient) => patient.pet_id !== petId)
+          );
+          setOriginalPatients((prevPatients) =>
+            prevPatients.filter((patient) => patient.pet_id !== petId)
+          );
+        } catch (error) {
+          console.error("Error archiving pet:", error);
+        }
       }
-
-      if (!response.ok) {
-        throw new Error("Failed to archive pet.");
-      }
-
-      const data = await response.json();
-      console.log(data.message);
-
-      // Update the patients list to remove the archived pet
-      setPatients((prevPatients) => prevPatients.filter((patient) => patient.pet_id !== petId));
-      setOriginalPatients((prevPatients) => prevPatients.filter((patient) => patient.pet_id !== petId));
-    } catch (error) {
-      console.error("Error archiving pet:", error);
-    }
-  });
-};
+    );
+  };
 
   const handleViewProfile = (patientId) => {
     console.log("Navigating to PetProfile with patientId:", patientId);
-    navigate(`/PetProfile/${patientId}`)
-  }
+    navigate(`/PetProfile/${patientId}`);
+  };
 
   const applyFilters = (filters) => {
     setActiveFilters(filters);
 
     // Call the search and filter function with the selected filters
     searchAndFilterPets({
-        pet_id: filters.idFrom || undefined,
-        min_id: filters.idFrom || undefined,
-        max_id: filters.idTo || undefined,
-        pet_name: filters.petName || undefined,
-        owner_name: filters.ownerName || undefined,
-        species: filters.species || undefined,
-        sort_by: filters.sortBy ? (filters.sortBy === "petName" ? "pet_name" : "owner_name") : undefined,
-        sort_order: filters.sortBy ? (filters.sortOrder === "ascending" ? "asc" : "desc") : undefined,
+      pet_id: filters.idFrom || undefined,
+      min_id: filters.idFrom || undefined,
+      max_id: filters.idTo || undefined,
+      pet_name: filters.petName || undefined,
+      owner_name: filters.ownerName || undefined,
+      species: filters.species || undefined,
+      sort_by: filters.sortBy
+        ? filters.sortBy === "petName"
+          ? "pet_name"
+          : "owner_name"
+        : undefined,
+      sort_order: filters.sortBy
+        ? filters.sortOrder === "ascending"
+          ? "asc"
+          : "desc"
+        : undefined,
     });
-};
+  };
 
   const resetFilters = () => {
-    setActiveFilters(null)
-    setPatients(originalPatients)
-  }
+    setActiveFilters(null);
+    setPatients(originalPatients);
+  };
 
   const searchAndFilterPets = async (filters) => {
     try {
       const queryParams = new URLSearchParams();
-  
+
       // Add filters to query parameters
       if (filters.search) queryParams.append("search", filters.search); // General search
       if (filters.pet_id) queryParams.append("pet_id", filters.pet_id);
       if (filters.pet_name) queryParams.append("pet_name", filters.pet_name);
-      if (filters.owner_name) queryParams.append("owner_name", filters.owner_name);
+      if (filters.owner_name)
+        queryParams.append("owner_name", filters.owner_name);
       if (filters.species) queryParams.append("species", filters.species);
       if (filters.sort_by) queryParams.append("sort_by", filters.sort_by);
-      if (filters.sort_order) queryParams.append("sort_order", filters.sort_order);
+      if (filters.sort_order)
+        queryParams.append("sort_order", filters.sort_order);
       if (filters.min_id) queryParams.append("min_id", filters.min_id);
       if (filters.max_id) queryParams.append("max_id", filters.max_id);
-  
-      const response = await fetch(`http://localhost:5000/pets/search-pets?${queryParams.toString()}`, {
-        method: "GET",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+
+      const response = await fetch(
+        `http://localhost:5000/pets/search-pets?${queryParams.toString()}`,
+        {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       if (response.status === 401) {
-        console.warn("Session expired (401 Unauthorized) during password change. Logging out...");
+        console.warn(
+          "Session expired (401 Unauthorized) during password change. Logging out..."
+        );
         await logout(); // Call logout function
         return; // Stop further processing in this function
       }
-  
+
       if (!response.ok) {
         throw new Error("Failed to search and filter pets");
       }
-  
+
       const data = await response.json();
       console.log("Search and filter results:", data);
-  
+
       // Update the patients state with the filtered data
       setPatients(data);
     } catch (error) {
@@ -227,14 +251,27 @@ export default function PatientDirectory() {
             </thead>
             <tbody>
               {patients.map((patient, index) => (
-                <tr key={patient.pet_id} className={index % 2 === 0 ? "row-even" : "row-odd"}>
+                <tr
+                  key={patient.pet_id}
+                  className={index % 2 === 0 ? "row-even" : "row-odd"}
+                >
                   <td>{patient.pet_id}</td>
                   <td>{patient.pet_name}</td>
-                  <td>{patient.owner_name || "N/A"}</td> {/* Ensure owner_name is displayed */}
-                  <td>{patient.species || "N/A"}</td> {/* Ensure species is displayed */}
+                  <td>{patient.owner_name || "N/A"}</td>{" "}
+                  {/* Ensure owner_name is displayed */}
+                  <td>{patient.species || "N/A"}</td>{" "}
+                  {/* Ensure species is displayed */}
                   <td className="actions">
-                    <Archive size={16} onClick={() => handleArchive(patient.pet_id)} style={{ cursor: "pointer" }} />
-                    <ArrowRight size={16} className="view-profile" onClick={() => handleViewProfile(patient.pet_id)} />
+                    <Archive
+                      size={16}
+                      onClick={() => handleArchive(patient.pet_id)}
+                      style={{ cursor: "pointer" }}
+                    />
+                    <ArrowRight
+                      size={16}
+                      className="view-profile"
+                      onClick={() => handleViewProfile(patient.pet_id)}
+                    />
                   </td>
                 </tr>
               ))}
@@ -244,12 +281,12 @@ export default function PatientDirectory() {
       </div>
 
       <FilterModal
-       type="patient"
+        type="patient"
         isOpen={isFilterModalOpen}
         onClose={() => setIsFilterModalOpen(false)}
         onApply={applyFilters}
         onReset={resetFilters}
       />
     </div>
-  )
+  );
 }

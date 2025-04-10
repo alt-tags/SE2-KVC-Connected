@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useCallback } from "react"
-import AccountPage from "./AccountPage"
-import "../css/AddNewPet.css" // Import for error message styling
-import { useConfirmDialog } from "../contexts/ConfirmDialogContext"
-import { useNavigate } from "react-router-dom"
+import { useState, useEffect, useCallback } from "react";
+import AccountPage from "./AccountPage";
+import "../css/AddNewPet.css"; // Import for error message styling
+import { useConfirmDialog } from "../contexts/ConfirmDialogContext";
+import { useNavigate } from "react-router-dom";
 
 const MyAccount = () => {
   const [displayData, setDisplayData] = useState(null);
@@ -15,12 +15,11 @@ const MyAccount = () => {
   const navigate = useNavigate();
   const { showConfirmDialog } = useConfirmDialog();
   const [validationErrors, setValidationErrors] = useState({
-    firstName: "",
-    lastName: "",
+    firstname: "",
+    lastname: "",
     email: "",
-    contact: ""
+    contact: "",
   });
-
 
   const logout = useCallback(async () => {
     console.log("Attempting logout due to session issue...");
@@ -34,8 +33,8 @@ const MyAccount = () => {
       console.error("Error during server logout request:", error);
       // Proceed with client-side logout even if server request fails
     } finally {
-        console.log("Redirecting to /login");
-        navigate("/login", { replace: true }); // Use replace to prevent going back to the expired page
+      console.log("Redirecting to /login");
+      navigate("/login", { replace: true }); // Use replace to prevent going back to the expired page
     }
   }, [navigate]);
 
@@ -51,7 +50,9 @@ const MyAccount = () => {
         });
 
         if (response.status === 401) {
-          console.warn("Session expired (401 Unauthorized) during password change. Logging out...");
+          console.warn(
+            "Session expired (401 Unauthorized) during password change. Logging out..."
+          );
           await logout(); // Call logout function
           return; // Stop further processing in this function
         }
@@ -64,15 +65,15 @@ const MyAccount = () => {
         console.log("Fetched user data:", data);
 
         setDisplayData({
-          firstName: data.firstname,
-          lastName: data.lastname,
+          firstname: data.firstname,
+          lastname: data.lastname,
           role: data.role,
           email: data.email,
           contact: data.contact,
         });
         setEditData({
-          firstName: data.firstname,
-          lastName: data.lastname,
+          firstname: data.firstname,
+          lastname: data.lastname,
           role: data.role,
           email: data.email,
           contact: data.contact,
@@ -90,25 +91,22 @@ const MyAccount = () => {
 
   const validateFields = (data) => {
     const errors = {
-      firstName: "",
-      lastName: "",
+      firstname: "",
+      lastname: "",
       email: "",
-      contact: ""
+      contact: "",
     };
     let isValid = true;
 
-
-    if (!data.firstName || data.firstName.trim() === "") {
-      errors.firstName = "First Name is required";
+    if (!data.firstname || data.firstname.trim() === "") {
+      errors.firstname = "First Name is required";
       isValid = false;
     }
 
-
-    if (!data.lastName || data.lastName.trim() === "") {
-      errors.lastName = "Last Name is required";
+    if (!data.lastname || data.lastname.trim() === "") {
+      errors.lastname = "Last Name is required";
       isValid = false;
     }
-
 
     if (!data.email || data.email.trim() === "") {
       errors.email = "Email is required";
@@ -124,59 +122,61 @@ const MyAccount = () => {
       return; // Stop submission if validation fails
     }
 
-
     showConfirmDialog("Do you want to save your changes?", async () => {
       try {
         const backendData = {
-          firstname: updatedData.firstName,
-          lastname: updatedData.lastName,
+          firstname: updatedData.firstname,
+          lastname: updatedData.lastname,
           email: updatedData.email,
           contact: updatedData.contact,
-          role: updatedData.role
+          role: updatedData.role,
         };
 
-      const response = await fetch("http://localhost:5000/user/update-employee-profile", {
-        method: "PUT",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updatedData),
-      });
+        const response = await fetch(
+          "http://localhost:5000/user/update-employee-profile",
+          {
+            method: "PUT",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(updatedData),
+          }
+        );
 
-      if (response.status === 401) {
-        console.warn("Session expired (401 Unauthorized) during password change. Logging out...");
-        await logout(); // Call logout function
-        return; // Stop further processing in this function
-      }
+        if (response.status === 401) {
+          console.warn(
+            "Session expired (401 Unauthorized) during password change. Logging out..."
+          );
+          await logout(); // Call logout function
+          return; // Stop further processing in this function
+        }
 
-      if (!response.ok) {
-        throw new Error("Failed to save user data");
-      }
+        if (!response.ok) {
+          throw new Error("Failed to save user data");
+        }
 
-      const data = await response.json();
-      console.log("Backend user data:", data);
-      
+        const data = await response.json();
+        console.log("Backend user data:", data);
 
-      const frontendData = {
-        firstName: data.firstname || updatedData.firstName,
-        lastName: data.lastname || updatedData.lastName,
-        role: data.role || updatedData.role,
-        email: data.email || updatedData.email,
-        contact: updatedData.contact,
-      };
+        const frontendData = {
+          firstname: data.firstname || updatedData.firstname,
+          lastname: data.lastname || updatedData.lastname,
+          role: data.role || updatedData.role,
+          email: data.email || updatedData.email,
+          contact: updatedData.contact,
+        };
 
-
-      setDisplayData(frontendData);
+        setDisplayData(frontendData);
         setEditData(frontendData);
-      setIsEditing(false);
-      console.log("Edit mode exited");
-    } catch (error) {
-      console.error("Error saving user data:", error);
-      alert("Failed to save user data. Please try again.");
-    }
-  });
-}
+        setIsEditing(false);
+        console.log("Edit mode exited");
+      } catch (error) {
+        console.error("Error saving user data:", error);
+        alert("Failed to save user data. Please try again.");
+      }
+    });
+  };
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -193,61 +193,88 @@ const MyAccount = () => {
       initialUserData={editData}
       isEditing={isEditing}
       setIsEditing={setIsEditing}
-      onSave={handleSave}>
+      onSave={handleSave}
+    >
       {({ isEditing, userData, displayData, handleInputChange }) => (
         <div className="info-grid clinician-grid">
           <div className="info-column">
             <div className="info-group">
-            <label>First Name{isEditing && <span className="required">*</span>}
-                {isEditing && validationErrors.firstName && <span className="error-message-pet">{validationErrors.firstName}</span>}
+              <label>
+                First Name{isEditing && <span className="required">*</span>}
+                {isEditing && validationErrors.firstname && (
+                  <span className="error-message-pet">
+                    {validationErrors.firstname}
+                  </span>
+                )}
               </label>
               {isEditing ? (
                 <input
                   type="text"
-                  name="firstName"
-                  value={userData.firstName}
+                  name="firstname"
+                  value={userData.firstname}
                   onChange={(e) => {
                     handleInputChange(e);
                     // Clear validation error
-                    if (validationErrors.firstName) {
-                      setValidationErrors(prev => ({...prev, firstName: ""}));
+                    if (validationErrors.firstname) {
+                      setValidationErrors((prev) => ({
+                        ...prev,
+                        firstname: "",
+                      }));
                     }
                   }}
-                  className={validationErrors.firstName ? "input-error-pet" : "info-input"}
-
+                  className={
+                    validationErrors.firstname
+                      ? "input-error-pet"
+                      : "info-input"
+                  }
                 />
               ) : (
-                <div className="info-value">{userData.firstName}</div>
+                <div className="info-value">{userData.firstname}</div>
               )}
             </div>
             <div className="info-group">
-            <label>Last Name{isEditing && <span className="required">*</span>}
-                {isEditing && validationErrors.lastName && <span className="error-message-pet">{validationErrors.lastName}</span>}
+              <label>
+                Last Name{isEditing && <span className="required">*</span>}
+                {isEditing && validationErrors.lastname && (
+                  <span className="error-message-pet">
+                    {validationErrors.lastname}
+                  </span>
+                )}
               </label>
               {isEditing ? (
                 <input
                   type="text"
-                  name="lastName"
-                  value={userData.lastName}
+                  name="lastname"
+                  value={userData.lastname}
                   onChange={(e) => {
                     handleInputChange(e);
                     // Clear validation error
-                    if (validationErrors.lastName) {
-                      setValidationErrors(prev => ({...prev, lastName: ""}));
+                    if (validationErrors.lastname) {
+                      setValidationErrors((prev) => ({
+                        ...prev,
+                        lastname: "",
+                      }));
                     }
                   }}
-                  className={validationErrors.lastName ? "input-error-pet" : "info-input"}
+                  className={
+                    validationErrors.lastname ? "input-error-pet" : "info-input"
+                  }
                 />
               ) : (
-                <div className="info-value">{userData.lastName}</div>
+                <div className="info-value">{userData.lastname}</div>
               )}
             </div>
           </div>
 
           <div className="info-column">
             <div className="info-group">
-            <label>Email{isEditing && <span className="required">*</span>}
-                {isEditing && validationErrors.email && <span className="error-message-pet">{validationErrors.email}</span>}
+              <label>
+                Email{isEditing && <span className="required">*</span>}
+                {isEditing && validationErrors.email && (
+                  <span className="error-message-pet">
+                    {validationErrors.email}
+                  </span>
+                )}
               </label>
               {isEditing ? (
                 <input
@@ -258,10 +285,12 @@ const MyAccount = () => {
                     handleInputChange(e);
                     // Clear validation error
                     if (validationErrors.email) {
-                      setValidationErrors(prev => ({...prev, email: ""}));
+                      setValidationErrors((prev) => ({ ...prev, email: "" }));
                     }
                   }}
-                  className={validationErrors.email ? "input-error-pet" : "info-input"}
+                  className={
+                    validationErrors.email ? "input-error-pet" : "info-input"
+                  }
                 />
               ) : (
                 <div className="info-value">{userData.email}</div>
@@ -285,7 +314,7 @@ const MyAccount = () => {
         </div>
       )}
     </AccountPage>
-  )
-}
+  );
+};
 
-export default MyAccount
+export default MyAccount;

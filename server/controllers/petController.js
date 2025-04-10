@@ -2,12 +2,10 @@ const dayjs = require("dayjs");
 const PetModel = require("../models/petModel");
 const db = require("../config/db");
 
-// Update pet profile (only for clinicians and doctors)
+// update pet profile (only for clinicians and doctors)
 exports.updatePetProfile = async (req, res) => {
     const { pet_id } = req.params;
     const updateFields = req.body;
-
-    console.log("Received update request:", { pet_id, ...updateFields });
 
     try {
         const existingPet = await PetModel.findById(pet_id);
@@ -36,11 +34,11 @@ exports.updatePetProfile = async (req, res) => {
             const computedMonths = now.diff(birthDate, "month") % 12;
 
             if (!isAgeUpdated) {
-                // If only the birthday is updated, auto-update the ages
+                // if only the birthday is updated, auto-update the ages
                 updatedData.pet_age_year = computedYears;
                 updatedData.pet_age_month = computedMonths;
             } else {
-                // If both birthday and ages are updated, ensure they match
+                // if both birthday and ages are updated, ensure they match
                 if (
                     updatedData.pet_age_year !== computedYears ||
                     updatedData.pet_age_month !== computedMonths
@@ -51,7 +49,7 @@ exports.updatePetProfile = async (req, res) => {
                 }
             }
         } else if (isAgeUpdated) {
-            // If only age is updated, check if it matches the existing birthday
+            // if only age is updated, check if it matches the existing birthday
             const birthDate = dayjs(existingPet.pet_birthday);
             if (birthDate.isValid()) {
                 const computedYears = dayjs().diff(birthDate, "year");
@@ -68,22 +66,21 @@ exports.updatePetProfile = async (req, res) => {
             }
         }
 
-        // If no valid fields are provided, return an error
+        // if no valid fields are provided, return an error
         if (Object.keys(updatedData).length === 0 && !updateFields.speciesDescription) {
             return res.status(400).json({ error: "❌ No valid fields to update." });
         }
 
-        // Perform the update on pet_info table
+        // update (pet_info table)
         if (Object.keys(updatedData).length > 0) {
             const result = await PetModel.updatePet(pet_id, updatedData);
 
-            console.log("Update Result:", result);
             if (result.affectedRows === 0) {
                 return res.status(400).json({ error: "❌ No changes made (pet ID may not exist or data is the same)." });
             }
         }
 
-        // If species is being updated, update the match_pet_species table
+        // pf species is being updated, update match_pet_species table
         if (updateFields.speciesDescription) {
             const species = await PetModel.findSpeciesByDescription(updateFields.speciesDescription);
             if (!species) {
@@ -172,60 +169,45 @@ exports.getPetById = async (req, res) => {
 exports.addPetForOwner = async (req, res) => {
     const { name, speciesDescription, gender, breed } = req.body;
     let birthday = req.body.birthday;
-    // --- Make sure userId is reliably obtained ---
-    // Check if req.user and req.user.userId exist. Adjust if your auth middleware sets it differently.
+    // check if req.user and req.user.userId exist
     if (!req.user || typeof req.user.userId === 'undefined') {
         console.error("Error adding pet: User ID not found in request. req.user:", req.user);
         return res.status(401).json({ error: "❌ Unauthorized or User ID missing." });
     }
     const userId = req.user.userId;
-    // --- End userId check ---
 
-    let connection; // Declare connection here to access it in finally block
+    let connection; 
 
     try {
-        // Validate required fields *before* getting a connection
         if (!name || !speciesDescription || !gender) {
             return res.status(400).json({ error: "❌ Name, species, and gender are required." });
         }
 
         if (!birthday) {
-            birthday = dayjs().format('YYYY-MM-DD'); // Set to today's date in SQL-friendly format
+            birthday = dayjs().format('YYYY-MM-DD');
             console.log(`[addPetForOwner] Birthday was empty, defaulting to today: ${birthday}`);
         } else {
-            // Optional: Validate the provided date format if needed
             if (!dayjs(birthday, 'YYYY-MM-DD', true).isValid()) {
-                 // If you want strict YYYY-MM-DD format
                  return res.status(400).json({ error: "❌ Invalid birthday format. Please use YYYY-MM-DD." });
             }
-             // No need for an else block if you just use the provided valid date
         }
 
-        // 1. Get connection from the pool
         connection = await db.getConnection();
         console.log(`[addPetForOwner] DB Connection obtained for user ${userId}`);
 
-        // 2. Start transaction
         await connection.beginTransaction();
         console.log(`[addPetForOwner] Transaction started for user ${userId}`);
 
-        // Find the species ID based on the species description
-        // Note: findSpeciesByDescription uses the global pool (db.execute),
-        // which is usually okay here, but ideally, for strict transaction control,
-        // it might also accept a connection. For now, this should work.
         const species = await PetModel.findSpeciesByDescription(speciesDescription);
         if (!species) {
-            // If species not found, rollback before sending error
             await connection.rollback();
-            console.log(`[addPetForOwner] Transaction rolled back - species not found: ${speciesDescription}`);
-            connection.release(); // Release connection even on handled errors
-            console.log(`[addPetForOwner] DB Connection released after species not found`);
+            connection.release(); 
             return res.status(400).json({ error: `❌ Species '${speciesDescription}' not found.` });
         }
         const speciesId = species.spec_id;
         console.log(`[addPetForOwner] Found speciesId ${speciesId} for description ${speciesDescription}`);
 
-         // Function to calculate pet age in years and months
+         // calculate pet age in years and months
          const calculatePetAge = (birthdate) => {
             const birth = new Date(birthdate);
             const today = new Date();
@@ -244,11 +226,8 @@ exports.addPetForOwner = async (req, res) => {
             return { years, months };
         };
 
-
-        // Calculate pet age before creating a pet entry
         let petAgeYear = null;
         let petAgeMonth = null;
-
 
         if (birthday) {
             const age = calculatePetAge(birthday);
@@ -257,49 +236,32 @@ exports.addPetForOwner = async (req, res) => {
         }
 
 
-        // Prepare data object matching the model's expected parameters
+        // pet object data
         const petData = {
             petname: name,
             gender,
             speciesId,
-            breed: breed || null, // Handle optional breed
-            birthdate: birthday || null, // Handle optional birthday
+            breed: breed || null,
+            birthdate: birthday || null, 
             petAgeYear,
             petAgeMonth,
             userId,
         };
-
-        // 3. Call PetModel.createPet, passing the data object AND the connection
-        console.log(`[addPetForOwner] Calling PetModel.createPet with data:`, petData);
-        const newPetId = await PetModel.createPet(petData, connection); // <-- PASS CONNECTION HERE
-        console.log(`[addPetForOwner] PetModel.createPet successful, newPetId: ${newPetId}`);
-
-        // 4. Commit transaction
+        const newPetId = await PetModel.createPet(petData, connection); 
         await connection.commit();
-        console.log(`[addPetForOwner] Transaction committed for user ${userId}, petId ${newPetId}`);
-
         res.status(201).json({ message: "✅ Pet added successfully!", petId: newPetId });
-
     } catch (error) {
         console.error(`[addPetForOwner] Error adding pet for user ${userId}:`, error);
-
-        // 5. Rollback transaction if connection exists and an error occurred
         if (connection) {
             try {
                 await connection.rollback();
-                console.log(`[addPetForOwner] Transaction rolled back for user ${userId} due to error.`);
             } catch (rollbackError) {
                 console.error(`[addPetForOwner] Error rolling back transaction for user ${userId}:`, rollbackError);
-                // Log rollback error but proceed with sending original error response
             }
         }
-
-        // Send error response
-        // Avoid sending detailed internal errors to the client in production
         res.status(500).json({ error: "❌ Server error while adding pet." });
 
     } finally {
-        // 6. Always release the connection back to the pool
         if (connection) {
             try {
                 connection.release();
@@ -311,10 +273,8 @@ exports.addPetForOwner = async (req, res) => {
     }
 };
 
-
-// Function to get all pets of an owner
 exports.getPetsByOwner = async (req, res) => {
-    const userId = req.user.userId; // Extract user ID from the authenticated token
+    const userId = req.user.userId;
 
     try {
         const [pets] = await db.query(
