@@ -9,6 +9,8 @@ export default function MyPets() {
   const navigate = useNavigate();
   const [originalPets, setOriginalPets] = useState([]);
   const [pets, setPets] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1); // Current page number
+  const recordsPerPage = 9; // Number of records per page
 
   const logout = useCallback(async () => {
     console.log("Attempting logout due to session issue...");
@@ -22,10 +24,29 @@ export default function MyPets() {
       console.error("Error during server logout request:", error);
       // Proceed with client-side logout even if server request fails
     } finally {
-        console.log("Redirecting to /login");
-        navigate("/login", { replace: true }); // Use replace to prevent going back to the expired page
+      console.log("Redirecting to /login");
+      navigate("/login", { replace: true }); // Use replace to prevent going back to the expired page
     }
   }, [navigate]);
+
+  useEffect(() => {
+    const triggerAutoArchive = async () => {
+      try {
+        await fetch("http://localhost:5000/pets/auto-archive", {
+          method: "PUT",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        console.log("Auto archive triggered.");
+      } catch (error) {
+        console.error("Error triggering auto archive:", error);
+      }
+    };
+
+    triggerAutoArchive();
+  }, []);
 
   useEffect(() => {
     const handleBackButton = () => {
@@ -38,15 +59,12 @@ export default function MyPets() {
       }
     };
 
-
     window.onpopstate = handleBackButton;
-
 
     return () => {
       window.onpopstate = null;
     };
   }, [logout]);
-
 
   useEffect(() => {
     const fetchMyPets = async () => {
@@ -60,10 +78,12 @@ export default function MyPets() {
         });
 
         if (response.status === 401) {
-            console.warn("Session expired (401 Unauthorized) during password change. Logging out...");
-            await logout(); // Call logout function
-            return; // Stop further processing in this function
-          }
+          console.warn(
+            "Session expired (401 Unauthorized) during password change. Logging out..."
+          );
+          await logout(); // Call logout function
+          return; // Stop further processing in this function
+        }
 
         if (!response.ok) {
           throw new Error("Failed to fetch my pets");
@@ -83,6 +103,25 @@ export default function MyPets() {
     fetchMyPets();
   }, [logout]);
 
+  // Pagination logic
+  const indexOfLastRecord = currentPage * recordsPerPage;
+  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+  const currentRecords = pets.slice(indexOfFirstRecord, indexOfLastRecord);
+
+  const totalPages = Math.ceil(pets.length / recordsPerPage);
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage((prevPage) => prevPage + 1);
+    }
+  };
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage((prevPage) => prevPage - 1);
+    }
+  };
+
   const handleViewProfile = (petId) => {
     console.log("Navigating to PetProfile with petId:", petId);
     navigate(`/PetProfile/${petId}`);
@@ -100,10 +139,13 @@ export default function MyPets() {
             className="search-input"
             onChange={(e) => {
               const searchTerm = e.target.value.toLowerCase();
-              const filteredPets = originalPets.filter((pet) =>
-                pet.pet_name.toLowerCase().includes(searchTerm) || pet.species.toLowerCase().includes(searchTerm)
+              const filteredPets = originalPets.filter(
+                (pet) =>
+                  pet.pet_name.toLowerCase().includes(searchTerm) ||
+                  pet.species.toLowerCase().includes(searchTerm)
               );
               setPets(filteredPets);
+              setCurrentPage(1);
             }}
           />
         </div>
@@ -121,8 +163,11 @@ export default function MyPets() {
               </tr>
             </thead>
             <tbody>
-              {pets.map((pet, index) => (
-                <tr key={pet.pet_id} className={index % 2 === 0 ? "row-even" : "row-odd"}>
+              {currentRecords.map((pet, index) => (
+                <tr
+                  key={pet.pet_id}
+                  className={index % 2 === 0 ? "row-even" : "row-odd"}
+                >
                   <td>{pet.pet_id}</td>
                   <td>{pet.pet_name}</td>
                   <td>{pet.species}</td>
@@ -140,7 +185,27 @@ export default function MyPets() {
           </table>
         </div>
       </div>
+
+      {/* Pagination Controls */}
+      <div className="pagination-controls">
+        <button
+          className="pagination-button"
+          onClick={handlePreviousPage}
+          disabled={currentPage === 1}
+        >
+          Previous
+        </button>
+        <span className="pagination-info">
+          Page {currentPage} of {totalPages}
+        </span>
+        <button
+          className="pagination-button"
+          onClick={handleNextPage}
+          disabled={currentPage === totalPages}
+        >
+          Next
+        </button>
+      </div>
     </div>
   );
 }
-

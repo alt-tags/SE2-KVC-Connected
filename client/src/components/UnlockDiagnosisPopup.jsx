@@ -20,7 +20,6 @@ const UnlockModal = ({ isOpen, onClose, onUnlock, generatedAccessCode }) => {
     const trimmedAccessCode = formData.accessCode.trim();
     console.log("Access code being entered:", trimmedAccessCode);
 
-    // Compare the entered access code with the generated access code
     if (trimmedAccessCode !== generatedAccessCode) {
       setError("Invalid access code. Please try again.");
       return;
@@ -34,7 +33,6 @@ const UnlockModal = ({ isOpen, onClose, onUnlock, generatedAccessCode }) => {
 
   if (!isOpen) return null;
 
-  // Use createPortal to render the modal at the end of the document body
   return createPortal(
     <div className="modal-overlay">
       <div className="modal-content">

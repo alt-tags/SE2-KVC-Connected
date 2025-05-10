@@ -1,4 +1,4 @@
-import { useUserRole } from "../contexts/UserRoleContext"
+import { useUserRole } from "../contexts/UserRoleContext";
 import { Navigate } from "react-router-dom"; // Correct import
 
 export default function ProtectedRoute({ requiredRoles, children }) {

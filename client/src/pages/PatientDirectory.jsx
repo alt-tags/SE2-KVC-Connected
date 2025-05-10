@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, Archive, ArrowRight, Filter } from "lucide-react";
+import { Search, Archive, Eye, Filter } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
 import "../css/PatientDirectory.css";
@@ -14,23 +14,42 @@ export default function PatientDirectory() {
   const [activeFilters, setActiveFilters] = useState(null);
   const [originalPatients, setOriginalPatients] = useState([]);
   const [patients, setPatients] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1); // Current page number
+  const recordsPerPage = 9; // Number of records per page
 
   const logout = useCallback(async () => {
     console.log("Attempting logout due to session issue...");
     try {
-      // Optional: Inform the backend about the logout attempt
       await fetch("http://localhost:5000/auth/logout", {
         method: "POST",
         credentials: "include",
       });
     } catch (error) {
       console.error("Error during server logout request:", error);
-      // Proceed with client-side logout even if server request fails
     } finally {
       console.log("Redirecting to /login");
-      navigate("/login", { replace: true }); // Use replace to prevent going back to the expired page
+      navigate("/login", { replace: true });
     }
   }, [navigate]);
+
+  useEffect(() => {
+    const triggerAutoArchive = async () => {
+      try {
+        await fetch("http://localhost:5000/pets/auto-archive", {
+          method: "PUT",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        console.log("Auto archive triggered.");
+      } catch (error) {
+        console.error("Error triggering auto archive:", error);
+      }
+    };
+
+    triggerAutoArchive();
+  }, []);
 
   useEffect(() => {
     const handleBackButton = () => {
@@ -216,6 +235,25 @@ export default function PatientDirectory() {
     }
   };
 
+  // Pagination logic
+  const indexOfLastRecord = currentPage * recordsPerPage;
+  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+  const currentRecords = patients.slice(indexOfFirstRecord, indexOfLastRecord);
+
+  const totalPages = Math.ceil(patients.length / recordsPerPage);
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage((prevPage) => prevPage + 1);
+    }
+  };
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage((prevPage) => prevPage - 1);
+    }
+  };
+
   return (
     <div className="patient-directory">
       <div className="directory-header">
@@ -250,25 +288,23 @@ export default function PatientDirectory() {
               </tr>
             </thead>
             <tbody>
-              {patients.map((patient, index) => (
+              {currentRecords.map((patient, index) => (
                 <tr
                   key={patient.pet_id}
                   className={index % 2 === 0 ? "row-even" : "row-odd"}
                 >
                   <td>{patient.pet_id}</td>
                   <td>{patient.pet_name}</td>
-                  <td>{patient.owner_name || "N/A"}</td>{" "}
-                  {/* Ensure owner_name is displayed */}
-                  <td>{patient.species || "N/A"}</td>{" "}
-                  {/* Ensure species is displayed */}
+                  <td>{patient.owner_name || "N/A"}</td>
+                  <td>{patient.species || "N/A"}</td>
                   <td className="actions">
                     <Archive
                       size={16}
                       onClick={() => handleArchive(patient.pet_id)}
                       style={{ cursor: "pointer" }}
                     />
-                    <ArrowRight
-                      size={16}
+                    <Eye
+                      size={18}
                       className="view-profile"
                       onClick={() => handleViewProfile(patient.pet_id)}
                     />
@@ -278,6 +314,27 @@ export default function PatientDirectory() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* Pagination Controls */}
+      <div className="pagination-controls">
+        <button
+          className="pagination-button"
+          onClick={handlePreviousPage}
+          disabled={currentPage === 1}
+        >
+          Previous
+        </button>
+        <span className="pagination-info">
+          Page {currentPage} of {totalPages}
+        </span>
+        <button
+          className="pagination-button"
+          onClick={handleNextPage}
+          disabled={currentPage === totalPages}
+        >
+          Next
+        </button>
       </div>
 
       <FilterModal

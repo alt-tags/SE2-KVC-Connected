@@ -1,8 +1,8 @@
 import { Menu, LogOut } from "lucide-react";
 import "../css/Header.css";
 import { useNavigate } from "react-router-dom";
-import { Link } from 'react-router-dom';
-import React from 'react';
+import { Link } from "react-router-dom";
+import React from "react";
 
 const Header = ({ toggleSidebar }) => {
   const navigate = useNavigate();
@@ -18,27 +18,36 @@ const Header = ({ toggleSidebar }) => {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Login failed");
 
-      const token = response.headers.get("Authorization")?.split(" ")[1] || data.token;
+      const token =
+        response.headers.get("Authorization")?.split(" ")[1] || data.token;
       if (token) {
         localStorage.setItem("jwt", token);
       }
       if (response.ok) {
-          navigate("/");
+        navigate("/");
       } else {
-          console.error("Logout failed");
+        console.error("Logout failed");
       }
     } catch (error) {
-        console.error("Error during logout:", error);
+      console.error("Error during logout:", error);
     }
   };
   return (
     <header className="header">
       <div className="header-left">
-        <button className="burger-menu" onClick={toggleSidebar} aria-label="menu">
+        <button
+          className="burger-menu"
+          onClick={toggleSidebar}
+          aria-label="menu"
+        >
           <Menu size={24} />
         </button>
         <div className="logo-container">
-          <img src="/logo.png" alt="Kho Veterinary Clinic Logo" className="logo" />
+          <img
+            src="/logo.png"
+            alt="Kho Veterinary Clinic Logo"
+            className="logo"
+          />
         </div>
         <div className="header-text">
           <h1>KHO VETERINARY CLINIC</h1>

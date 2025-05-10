@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Download, ArrowRight, Plus, Filter } from "lucide-react";
+import { Download, Eye, Plus, Filter } from "lucide-react";
 import AddRecord from "./AddRecord";
 import ViewRecord from "./ViewRecord";
 import FilterModal from "../components/FilterPopup";
@@ -367,7 +367,7 @@ const VisitHistory = () => {
                       className="action-btn"
                       onClick={() => handleViewRecord(record)}
                     >
-                      <ArrowRight size={20} />
+                      <Eye size={20} />
                     </button>
                   </td>
                 </tr>

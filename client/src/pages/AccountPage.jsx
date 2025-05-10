@@ -37,39 +37,28 @@ const AccountPage = ({
   const navigate = useNavigate();
 
   const logout = useCallback(async () => {
-    console.log("Attempting logout due to session issue...");
     try {
-      // Optional: Inform the backend about the logout attempt
       await fetch("http://localhost:5000/auth/logout", {
         method: "POST",
         credentials: "include",
       });
     } catch (error) {
       console.error("Error during server logout request:", error);
-      // Proceed with client-side logout even if server request fails
     } finally {
-      console.log("Redirecting to /login");
-      navigate("/login", { replace: true }); // Use replace to prevent going back to the expired page
+      navigate("/login", { replace: true });
     }
   }, [navigate]);
 
   useEffect(() => {
-    console.log("AccountPage - displayData updated:", displayData);
-  }, [displayData]);
-
-  useEffect(() => {
-    console.log("AccountPage - initialUserData updated:", initialUserData);
     setUserData(initialUserData);
   }, [initialUserData]);
 
   const handleEdit = () => {
-    console.log("AccountPage - Entering edit mode");
     setIsEditing(true);
     setUserData(initialUserData);
   };
 
   const handleCancel = () => {
-    console.log("AccountPage - Canceling edit mode");
     setUserData(initialUserData);
     if (onCancelEdit) {
       onCancelEdit();
@@ -80,7 +69,6 @@ const AccountPage = ({
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    console.log(`AccountPage - Input changed: ${name} = ${value}`);
     setUserData((prevData) => ({
       ...prevData,
       [name]: value,
@@ -123,7 +111,6 @@ const AccountPage = ({
       confirmPassword: "",
     });
 
-    // Exit password change mode
     setIsChangingPassword(false);
   };
 
@@ -149,8 +136,7 @@ const AccountPage = ({
       errors.newPassword = "New Password is required";
       isValid = false;
     } else if (!passwordRegex.test(passwordData.newPassword)) {
-      // <-- The new check
-      errors.newPassword = passwordRequirementsMessage; // Set the specific error
+      errors.newPassword = passwordRequirementsMessage;
       isValid = false;
     }
 
@@ -179,8 +165,6 @@ const AccountPage = ({
 
   const savePasswordChanges = async () => {
     try {
-      console.log("Password Data:", passwordData);
-
       const response = await fetch(
         "http://localhost:5000/user/change-password",
         {
@@ -197,14 +181,13 @@ const AccountPage = ({
         console.warn(
           "Session expired (401 Unauthorized) during password change. Logging out..."
         );
-        await logout(); // Call logout function
-        return; // Stop further processing in this function
+        await logout();
+        return;
       }
 
       if (!response.ok) {
         const errorData = await response.json();
         console.error("Backend Error:", errorData);
-        // Handle specific backend errors
         if (errorData.error && errorData.error.includes("current password")) {
           setPasswordError((prev) => ({
             ...prev,
@@ -217,7 +200,6 @@ const AccountPage = ({
       }
 
       const data = await response.json();
-      console.log("Password changed successfully:", data);
 
       setIsChangingPassword(false);
 

@@ -301,3 +301,12 @@ exports.getPetsByOwner = async (req, res) => {
     }
 };
 
+exports.autoArchiveOldPets = async (req, res) => {
+    try {
+        await PetModel.autoArchiveOldPets();
+        res.status(200).json({ message: "Auto archive process completed." });
+    } catch (error) {
+        console.error("Error in autoArchiveOldPets controller:", error);
+        res.status(500).json({ error: "Failed to auto archive pets." });
+    }
+};

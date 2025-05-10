@@ -10,7 +10,7 @@ const formatDateForDisplay = (dateString) => {
 
   try {
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) return dateString; // Return original if invalid
+    if (isNaN(date.getTime())) return dateString;
 
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");
@@ -32,11 +32,6 @@ const MedicalRecordForm = ({
   isAddRecord,
   errors,
 }) => {
-  // Debug log to check formData
-  useEffect(() => {
-    console.log("MedicalRecordForm formData:", formData);
-  }, [formData]);
-
   const renderField = (label, name, type = "text", options = {}) => {
     const value = formData[name];
     const { isFullWidth, isRequired, selectOptions } = options;

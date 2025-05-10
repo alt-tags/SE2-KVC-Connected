@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";
 import "../css/AddNewPet.css";
 import { useConfirmDialog } from "../contexts/ConfirmDialogContext";
 
@@ -18,47 +18,41 @@ export default function AddNewPet() {
     name: "",
     speciesDescription: "",
     gender: "",
-    birthday: ""
+    birthday: "",
   });
 
-
-  const navigate = useNavigate(); // Initialize navigate
+  const navigate = useNavigate();
   const { showConfirmDialog } = useConfirmDialog();
 
   const logout = useCallback(async () => {
-    console.log("Attempting logout due to session issue...");
     try {
-      // Optional: Inform the backend about the logout attempt
       await fetch("http://localhost:5000/auth/logout", {
         method: "POST",
         credentials: "include",
       });
     } catch (error) {
       console.error("Error during server logout request:", error);
-      // Proceed with client-side logout even if server request fails
     } finally {
-        console.log("Redirecting to /login");
-        navigate("/login", { replace: true }); // Use replace to prevent going back to the expired page
+      console.log("Redirecting to /login");
+      navigate("/login", { replace: true });
     }
   }, [navigate]);
 
   // to prevent future dates
   const validateDate = (dateString) => {
-    if (!dateString) return ""; // Birthday is optional, so empty is valid
-   
+    if (!dateString) return "";
+
     const selectedDate = new Date(dateString);
     const currentDate = new Date();
-   
-    // Reset the time portion to compare just the dates
+
     selectedDate.setHours(0, 0, 0, 0);
     currentDate.setHours(0, 0, 0, 0);
-   
+
     if (selectedDate > currentDate) {
       return "Future dates not allowed";
     }
     return "";
   };
-
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -66,41 +60,42 @@ export default function AddNewPet() {
       ...prev,
       [name]: value,
     }));
-     // Clear error for this field when user types
-     if (errors[name]) {
-      setErrors(prev => ({
+    if (errors[name]) {
+      setErrors((prev) => ({
         ...prev,
-        [name]: ""
+        [name]: "",
       }));
     }
-    // Validate birthday if that's the field being changed
     if (name === "birthday" && value) {
       const dateError = validateDate(value);
       if (dateError) {
-        setErrors(prev => ({
+        setErrors((prev) => ({
           ...prev,
-          birthday: dateError
+          birthday: dateError,
         }));
       }
     }
   };
 
-
   const validateForm = () => {
     let valid = true;
-    const newErrors = { name: "", speciesDescription: "", gender: "",
-      birthday: "" };
-   
+    const newErrors = {
+      name: "",
+      speciesDescription: "",
+      gender: "",
+      birthday: "",
+    };
+
     if (!petData.name.trim()) {
       newErrors.name = "Name is required";
       valid = false;
     }
-   
+
     if (!petData.speciesDescription) {
       newErrors.speciesDescription = "Species is required";
       valid = false;
     }
-   
+
     if (!petData.gender) {
       newErrors.gender = "Gender is required";
       valid = false;
@@ -115,19 +110,16 @@ export default function AddNewPet() {
       }
     }
 
-   
     setErrors(newErrors);
     return valid;
-
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!validateForm()) {
-      return; 
+      return;
     }
-
 
     showConfirmDialog("Do you want to add this pet?", submitPet);
   };
@@ -143,9 +135,11 @@ export default function AddNewPet() {
       });
 
       if (response.status === 401) {
-        console.warn("Session expired (401 Unauthorized) during password change. Logging out...");
-        await logout(); // Call logout function
-        return; // Stop further processing in this function
+        console.warn(
+          "Session expired (401 Unauthorized) during password change. Logging out..."
+        );
+        await logout();
+        return;
       }
 
       if (!response.ok) {
@@ -156,10 +150,7 @@ export default function AddNewPet() {
       }
 
       const result = await response.json();
-      console.log("Pet added successfully:", result);
-      //alert("Pet added successfully!");
 
-      // Redirect to MyPets page
       navigate("/MyPets");
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -182,8 +173,11 @@ export default function AddNewPet() {
         <form onSubmit={handleSubmit} className="pet-form">
           <div className="form-row">
             <div className="form-field">
-            <label>Name<span className="required">*</span>
-                {errors.name && <span className="error-message-pet">{errors.name}</span>}
+              <label>
+                Name<span className="required">*</span>
+                {errors.name && (
+                  <span className="error-message-pet">{errors.name}</span>
+                )}
               </label>
               <input
                 type="text"
@@ -194,15 +188,19 @@ export default function AddNewPet() {
               />
             </div>
             <div className="form-field">
-            <label>Species<span className="required">*</span>
-                {errors.speciesDescription && <span className="error-message-pet">{errors.speciesDescription}</span>}
+              <label>
+                Species<span className="required">*</span>
+                {errors.speciesDescription && (
+                  <span className="error-message-pet">
+                    {errors.speciesDescription}
+                  </span>
+                )}
               </label>
               <select
                 name="speciesDescription"
                 value={petData.speciesDescription}
                 onChange={handleInputChange}
                 className={errors.speciesDescription ? "input-error-pet" : ""}
-
               >
                 <option value="">Select species</option>
                 <option value="Dog (Standard)">Dog</option>
@@ -219,8 +217,11 @@ export default function AddNewPet() {
 
           <div className="form-row">
             <div className="form-field">
-            <label>Gender<span className="required">*</span>
-                {errors.gender && <span className="error-message-pet">{errors.gender}</span>}
+              <label>
+                Gender<span className="required">*</span>
+                {errors.gender && (
+                  <span className="error-message-pet">{errors.gender}</span>
+                )}
               </label>
               <div className="radio-group">
                 <label className="radio-label">
@@ -258,8 +259,11 @@ export default function AddNewPet() {
 
           <div className="form-row birthday-row">
             <div className="form-field">
-            <label>Birthday (Optional)
-                {errors.birthday && <span className="error-message-pet">{errors.birthday}</span>}
+              <label>
+                Birthday (Optional)
+                {errors.birthday && (
+                  <span className="error-message-pet">{errors.birthday}</span>
+                )}
               </label>
               <div className="date-input">
                 <input
@@ -267,7 +271,7 @@ export default function AddNewPet() {
                   name="birthday"
                   value={petData.birthday}
                   onChange={handleInputChange}
-                  className={errors.birthday ? "input-error-pet" : ""} 
+                  className={errors.birthday ? "input-error-pet" : ""}
                 />
               </div>
             </div>
@@ -284,4 +288,3 @@ export default function AddNewPet() {
     </div>
   );
 }
-

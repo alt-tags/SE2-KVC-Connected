@@ -103,7 +103,7 @@ async function generatePdf(petId, recordId) {
             }
         });
         const vaccineRecords = Array.from(uniqueVaccines.values());
-        vaccineRecords.sort((a, b) => new Date(a.vaccine_date) - new Date(b.vaccine_date));
+        vaccineRecords.sort((a, b) => new Date(b.vaccine_date) - new Date(a.vaccine_date));
 
 
         // Helper Functions 
@@ -119,7 +119,26 @@ async function generatePdf(petId, recordId) {
             docInstance.fillColor('black')
                     .font('Helvetica-Bold').fontSize(16).text('Kho Veterinary Clinic', headerTextX, 50)
                     .font('Helvetica').fontSize(10).text('715 Earnshaw St., Sampaloc, Manila, 1008 Metro Manila', headerTextX, 70);
-            docInstance.fillColor('black');
+            
+            // Add generation timestamp in top right corner
+    const currentTime = new Date();
+    const formattedTime = `${currentTime.toLocaleDateString()} ${currentTime.toLocaleTimeString()}`;
+    const rightMargin = docInstance.page.margins.right || 50;
+    const timestampX = docInstance.page.width - rightMargin - 150; // Position from right edge
+    
+    // Save the current graphics state
+    docInstance.save();
+    
+    // Set gray color only for the timestamp
+    docInstance.fillColor('gray')
+              .font('Helvetica-Oblique').fontSize(9)
+              .text(`Generated: ${formattedTime}`, timestampX, 50, { 
+                 width: 150,
+                 align: 'right'
+              });
+    
+    // Restore the previous graphics state (including black fill color)
+    docInstance.restore();
         }
  
         function addFooter(docInstance) {
@@ -187,6 +206,40 @@ async function generatePdf(petId, recordId) {
                         .text(bottomLabel, sigX, bottomLabelY, { width: sigWidth, align: 'center' });
             docInstance.restore();
         }
+
+        // Add this function to your helper functions section
+function addPageNumbers(docInstance) {
+    const pageCount = docInstance.bufferedPageRange().count;
+    
+    for (let i = 0; i < pageCount; i++) {
+        docInstance.switchToPage(i);
+        
+        // Calculate position for page number (bottom right)
+        const pageHeight = docInstance.page.height;
+        const pageWidth = docInstance.page.width;
+        const bottomMargin = docInstance.page.margins.bottom || 50;
+        const rightMargin = docInstance.page.margins.right || 50;
+        
+        // Position the page number above the footer
+        const footerHeight = 30; // Adjust based on your footer height
+        const pageNumY = pageHeight - bottomMargin - footerHeight + 15;
+        const pageNumX = pageWidth - rightMargin;
+        
+        // Add page number text
+        docInstance.save();
+        docInstance.font('Helvetica-Oblique').fontSize(9)
+            .fillColor('gray')
+            .text(`Page ${i + 1} of ${pageCount}`,
+                pageNumX - 70, // Position 70 points left of right margin
+                pageNumY,
+                {
+                    width: 70,
+                    align: 'right'
+                }
+            );
+        docInstance.restore();
+    }
+}
 
         const addLabeledText = (docInstance, label, value, x, y, options = {}) => {
                 const startY = y;
@@ -479,7 +532,8 @@ async function generatePdf(petId, recordId) {
                 }
                 addSignatureArea(doc);
             }
-        } 
+        }
+        addPageNumbers(doc); 
 
 
         // Finalize PDF 

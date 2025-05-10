@@ -1,14 +1,18 @@
-"use client"
+"use client";
 
+import { useState } from "react";
+import { X } from "lucide-react";
+import "../css/FilterModal.css";
+import React from "react";
+import ReactDOM from "react-dom";
 
-import { useState } from "react"
-import { X  } from "lucide-react"
-import "../css/FilterModal.css"
-import React from 'react';
-import ReactDOM from 'react-dom';
-
-
-const FilterModal = ({ isOpen, onClose, onApply, onReset, type = "patient" }) => {
+const FilterModal = ({
+  isOpen,
+  onClose,
+  onApply,
+  onReset,
+  type = "patient",
+}) => {
   const [filters, setFilters] = useState(
     type === "patient"
       ? {
@@ -22,9 +26,8 @@ const FilterModal = ({ isOpen, onClose, onApply, onReset, type = "patient" }) =>
           sortOrder: "newest",
           dateFrom: "",
           dateTo: "",
-        },
-  )
-
+        }
+  );
 
   const handleReset = () => {
     setFilters(
@@ -40,52 +43,38 @@ const FilterModal = ({ isOpen, onClose, onApply, onReset, type = "patient" }) =>
             sortOrder: "newest",
             dateFrom: "",
             dateTo: "",
-          },
-    )
-    onReset?.()
-    onClose()
-  }
-
+          }
+    );
+    onReset?.();
+    onClose();
+  };
 
   const handleApply = () => {
-    console.log("Before applying filters:", filters); // Debugging
- 
     const updatedFilters = { ...filters };
- 
+
     if (filters.sortBy) {
       if (!filters.sortOrder) {
-        updatedFilters.sortOrder = "ASC"; // Default value if undefined
+        updatedFilters.sortOrder = "ASC";
       }
     } else {
-      // Convert sortOrder values
-        if (updatedFilters.sortOrder) {
-          if (updatedFilters.sortOrder === "oldest") {
-            updatedFilters.sortOrder = "ASC";
-          } else if (updatedFilters.sortOrder === "newest") {
-            updatedFilters.sortOrder = "DESC";
-          }
-        } else {
-          delete updatedFilters.sortOrder; // Remove if not set
-          delete updatedFilters.sortBy;
+      if (updatedFilters.sortOrder) {
+        if (updatedFilters.sortOrder === "oldest") {
+          updatedFilters.sortOrder = "ASC";
+        } else if (updatedFilters.sortOrder === "newest") {
+          updatedFilters.sortOrder = "DESC";
         }
+      } else {
+        delete updatedFilters.sortOrder;
+        delete updatedFilters.sortBy;
+      }
     }
- 
-    console.log("Updated Filters (before sending):", updatedFilters); // Debugging
- 
+
     onApply(updatedFilters);
     onClose();
   };
- 
- 
- 
- 
- 
-
 
   if (!isOpen) return null;
 
-
-  // Use React Portal to render the modal outside the normal DOM hierarchy
   const modalContent = (
     <div className="filter-modal-overlay">
       <div className={`filter-modal ${type}-filter`}>
@@ -93,7 +82,6 @@ const FilterModal = ({ isOpen, onClose, onApply, onReset, type = "patient" }) =>
           <X size={20} />
         </button>
         <h2>Filters</h2>
-
 
         {type === "patient" ? (
           <>
@@ -104,18 +92,21 @@ const FilterModal = ({ isOpen, onClose, onApply, onReset, type = "patient" }) =>
                   type="text"
                   placeholder="From"
                   value={filters.idFrom}
-                  onChange={(e) => setFilters({ ...filters, idFrom: e.target.value })}
+                  onChange={(e) =>
+                    setFilters({ ...filters, idFrom: e.target.value })
+                  }
                 />
                 <span>-</span>
                 <input
                   type="text"
                   placeholder="To"
                   value={filters.idTo}
-                  onChange={(e) => setFilters({ ...filters, idTo: e.target.value })}
+                  onChange={(e) =>
+                    setFilters({ ...filters, idTo: e.target.value })
+                  }
                 />
               </div>
             </div>
-
 
             <div className="filter-section">
               <div className="sort-options">
@@ -127,8 +118,17 @@ const FilterModal = ({ isOpen, onClose, onApply, onReset, type = "patient" }) =>
                         type="radio"
                         name="sortBy"
                         value="petName"
-                        checked={filters.sortBy === "petName" && filters.sortOrder === "ascending"}
-                        onChange={(e) => setFilters({ ...filters, sortBy: "petName", sortOrder: "ascending" })}
+                        checked={
+                          filters.sortBy === "petName" &&
+                          filters.sortOrder === "ascending"
+                        }
+                        onChange={(e) =>
+                          setFilters({
+                            ...filters,
+                            sortBy: "petName",
+                            sortOrder: "ascending",
+                          })
+                        }
                       />
                       Ascending
                     </label>
@@ -137,14 +137,22 @@ const FilterModal = ({ isOpen, onClose, onApply, onReset, type = "patient" }) =>
                         type="radio"
                         name="sortBy"
                         value="petName"
-                        checked={filters.sortBy === "petName" && filters.sortOrder === "descending"}
-                        onChange={(e) => setFilters({ ...filters, sortBy: "petName", sortOrder: "descending" })}
+                        checked={
+                          filters.sortBy === "petName" &&
+                          filters.sortOrder === "descending"
+                        }
+                        onChange={(e) =>
+                          setFilters({
+                            ...filters,
+                            sortBy: "petName",
+                            sortOrder: "descending",
+                          })
+                        }
                       />
                       Descending
                     </label>
                   </div>
                 </div>
-
 
                 <div className="sort-option">
                   <label>Pet Owner</label>
@@ -154,8 +162,17 @@ const FilterModal = ({ isOpen, onClose, onApply, onReset, type = "patient" }) =>
                         type="radio"
                         name="sortBy"
                         value="petOwner"
-                        checked={filters.sortBy === "petOwner" && filters.sortOrder === "ascending"}
-                        onChange={(e) => setFilters({ ...filters, sortBy: "petOwner", sortOrder: "ascending" })}
+                        checked={
+                          filters.sortBy === "petOwner" &&
+                          filters.sortOrder === "ascending"
+                        }
+                        onChange={(e) =>
+                          setFilters({
+                            ...filters,
+                            sortBy: "petOwner",
+                            sortOrder: "ascending",
+                          })
+                        }
                       />
                       Ascending
                     </label>
@@ -164,8 +181,17 @@ const FilterModal = ({ isOpen, onClose, onApply, onReset, type = "patient" }) =>
                         type="radio"
                         name="sortBy"
                         value="petOwner"
-                        checked={filters.sortBy === "petOwner" && filters.sortOrder === "descending"}
-                        onChange={(e) => setFilters({ ...filters, sortBy: "petOwner", sortOrder: "descending" })}
+                        checked={
+                          filters.sortBy === "petOwner" &&
+                          filters.sortOrder === "descending"
+                        }
+                        onChange={(e) =>
+                          setFilters({
+                            ...filters,
+                            sortBy: "petOwner",
+                            sortOrder: "descending",
+                          })
+                        }
                       />
                       Descending
                     </label>
@@ -174,10 +200,14 @@ const FilterModal = ({ isOpen, onClose, onApply, onReset, type = "patient" }) =>
               </div>
             </div>
 
-
             <div className="filter-section">
               <label>Species</label>
-              <select value={filters.species} onChange={(e) => setFilters({ ...filters, species: e.target.value })}>
+              <select
+                value={filters.species}
+                onChange={(e) =>
+                  setFilters({ ...filters, species: e.target.value })
+                }
+              >
                 <option value="">All Species</option>
                 <option value="Dog">Dog (Standard)</option>
                 <option value="Cat">Cat (Standard)</option>
@@ -201,7 +231,9 @@ const FilterModal = ({ isOpen, onClose, onApply, onReset, type = "patient" }) =>
                     name="sortOrder"
                     value="oldest"
                     checked={filters.sortOrder === "oldest"}
-                    onChange={(e) => setFilters({ ...filters, sortOrder: e.target.value })}
+                    onChange={(e) =>
+                      setFilters({ ...filters, sortOrder: e.target.value })
+                    }
                   />
                   Oldest
                 </label>
@@ -211,13 +243,14 @@ const FilterModal = ({ isOpen, onClose, onApply, onReset, type = "patient" }) =>
                     name="sortOrder"
                     value="newest"
                     checked={filters.sortOrder === "newest"}
-                    onChange={(e) => setFilters({ ...filters, sortOrder: e.target.value })}
+                    onChange={(e) =>
+                      setFilters({ ...filters, sortOrder: e.target.value })
+                    }
                   />
                   Newest
                 </label>
               </div>
             </div>
-
 
             <div className="filter-section">
               <h3>Date Range</h3>
@@ -226,7 +259,9 @@ const FilterModal = ({ isOpen, onClose, onApply, onReset, type = "patient" }) =>
                   <input
                     type="date"
                     value={filters.dateFrom}
-                    onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
+                    onChange={(e) =>
+                      setFilters({ ...filters, dateFrom: e.target.value })
+                    }
                     placeholder="From"
                     className="date-input"
                   />
@@ -237,7 +272,9 @@ const FilterModal = ({ isOpen, onClose, onApply, onReset, type = "patient" }) =>
                   <input
                     type="date"
                     value={filters.dateTo}
-                    onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
+                    onChange={(e) =>
+                      setFilters({ ...filters, dateTo: e.target.value })
+                    }
                     placeholder="To"
                     className="date-input"
                   />
@@ -247,7 +284,6 @@ const FilterModal = ({ isOpen, onClose, onApply, onReset, type = "patient" }) =>
             </div>
           </>
         )}
-
 
         <div className="filter-actions">
           <button className="reset-button" onClick={handleReset}>
@@ -261,14 +297,7 @@ const FilterModal = ({ isOpen, onClose, onApply, onReset, type = "patient" }) =>
     </div>
   );
 
+  return ReactDOM.createPortal(modalContent, document.body);
+};
 
-  // Use portal to render the modal at the end of the document body
-  return ReactDOM.createPortal(
-    modalContent,
-    document.body
-  );
-}
-
-
-export default FilterModal
-
+export default FilterModal;

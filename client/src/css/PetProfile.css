@@ -12,10 +12,18 @@
 
 
 
+
+
+
+
 .tabs {
   display: flex;
   z-index: 10;
 }
+
+
+
+
 
 
 
@@ -33,10 +41,18 @@
 
 
 
+
+
+
+
 .tab.active {
   background-color: var(--orange-color);
   color: white;
 }
+
+
+
+
 
 
 
@@ -54,6 +70,10 @@
 
 
 
+
+
+
+
 .profile-content {
   flex: 1;
   overflow-y: auto;
@@ -66,9 +86,17 @@
 
 
 
+
+
+
+
 .pet-details {
   flex: 1;
 }
+
+
+
+
 
 
 
@@ -80,11 +108,19 @@
 
 
 
+
+
+
+
 .separator {
   width: 1px;
   background-color: #e0e0e0;
   margin: 0 1rem;
 }
+
+
+
+
 
 
 
@@ -102,11 +138,19 @@
 
 
 
+
+
+
+
 .section-header h2 {
   color: #333;
   margin: 0;
   font-size: 1rem;
 }
+
+
+
+
 
 
 
@@ -122,11 +166,19 @@
 
 
 
+
+
+
+
 .details-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 0.5rem;
 }
+
+
+
+
 
 
 
@@ -141,6 +193,10 @@
 
 
 
+
+
+
+
 .detail-item label {
   color: #666;
   font-size: 0.9rem;
@@ -149,9 +205,17 @@
 
 
 
+
+
+
+
 .detail-item span {
   color: #333;
 }
+
+
+
+
 
 
 
@@ -165,10 +229,18 @@
 
 
 
+
+
+
+
 .age-value {
   color: #333;
   margin-right: 1rem;
 }
+
+
+
+
 
 
 
@@ -185,12 +257,20 @@
 
 
 
+
+
+
+
 .vaccination-record h2 {
   color: var(--orange-color);
   margin-bottom: 1rem;
   text-align: center;
   font-size: 2rem;
 }
+
+
+
+
 
 
 
@@ -203,7 +283,12 @@
   padding-bottom: 1rem;
   border-bottom: 2px solid #eee;
   text-align: center;
+  align-items: start;
 }
+
+
+
+
 
 
 
@@ -211,6 +296,10 @@
 .vaccination-table tr:nth-child(odd) {
   background-color: var(--lblue-color);
 }
+
+
+
+
 
 
 
@@ -224,11 +313,19 @@
 
 
 
+
+
+
+
 .form-group label {
   font-size: 0.9rem;
   color: var(--orange-color);
   font-weight: bold;
 }
+
+
+
+
 
 
 
@@ -242,7 +339,44 @@
   border-radius: 0.2rem;
   font-size: 1rem;
   background-color: white;
+  min-height: 38px;
+  height: 38px;
+  box-sizing: border-box;
 }
+
+
+
+
+
+
+
+
+.form-group .input-error-pet {
+  border-color: #ff4444;
+  border-width: 1px;
+  min-height: 38px;
+  height: 38px;
+}
+
+
+
+
+
+
+
+
+.form-group .error-message-profile {
+  position: relative;
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+  padding: 0;
+  height: auto;
+  min-height: auto;
+}
+
+
+
+
 
 
 
@@ -251,7 +385,14 @@
   position: relative;
   display: flex;
   align-items: center;
+  min-height: 38px;
+  height: 38px;
+  width: 100%;
 }
+
+
+
+
 
 
 
@@ -261,7 +402,17 @@
   padding: 0.5rem;
   border: 1px solid #ddd;
   border-radius: 0.2rem;
+  min-height: 38px;
+  height: 38px;
+  box-sizing: border-box;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
 }
+
+
+
+
 
 
 
@@ -275,8 +426,12 @@
 
 
 
+
+
+
+
 .add-button {
-  align-self: flex-end;
+  align-self: flex-start;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -286,7 +441,14 @@
   border: none;
   border-radius: 0.25rem;
   cursor: pointer;
+  height: 38px;
+  box-sizing: border-box;
+  margin-top: 24px;
 }
+
+
+
+
 
 
 
@@ -301,11 +463,19 @@
 
 
 
+
+
+
+
 .vaccination-table table {
   width: 100%;
   border-collapse: collapse;
   min-width: 600px;
 }
+
+
+
+
 
 
 
@@ -322,10 +492,18 @@
 
 
 
+
+
+
+
 .vaccination-table td {
   padding: 0.5rem;
   border-bottom: 1px solid #eee;
 }
+
+
+
+
 
 
 
@@ -346,6 +524,10 @@
 
 
 
+
+
+
+
 /*
   .pet-details input {
     width: 100%;
@@ -355,6 +537,10 @@
     font-size: 1rem;
   }
     */
+
+
+
+
 
 
 
@@ -376,6 +562,10 @@
 
 
 
+
+
+
+
 .cancell-button {
   display: flex;
   align-items: center;
@@ -393,12 +583,20 @@
 
 
 
+
+
+
+
 .edit-actions {
   display: flex;
   justify-content: center;
   gap: 1rem;
   margin-top: 1.5rem;
 }
+
+
+
+
 
 
 
@@ -410,7 +608,12 @@
 
 
 
+
+
+
+
 @media (max-width: 1200px) {
+
   .save-button,
   .cancel-button {
     width: 100% !important;
@@ -421,8 +624,16 @@
 
 
 
+
+
+
+
   .vaccination-form {
     grid-template-columns: 1fr;
+
+
+
+
 
 
 
@@ -432,6 +643,10 @@
     }
   }
 }
+
+
+
+
 
 
 
@@ -447,10 +662,18 @@
 
 
 
+
+
+
+
 @media (max-width: 768px) {
   .content-area {
     padding: 1rem;
   }
+
+
+
+
 
 
 
@@ -465,10 +688,16 @@
 
 
 
+
+
   .tabs {
     flex-wrap: wrap;
     justify-content: center;
   }
+
+
+
+
 
 
 
@@ -482,6 +711,10 @@
 
 
 
+
+
+
+
   .vaccination-table th,
   .vaccination-table td {
     padding: 0.5rem;
@@ -491,10 +724,19 @@
 
 
 
+
+
+
+
   .add-button {
     width: 100%;
     justify-content: center;
+    margin-top: 1rem;
   }
+
+
+
+
 
 
 
@@ -507,8 +749,49 @@
 
 
 
+
+
+
+
   .vaccination-form {
     grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .vaccination-form .form-group {
+    width: 100%;
+  }
+
+  .vaccination-form .form-group input,
+  .vaccination-form .form-group select,
+  .vaccination-form .form-group .date-input input {
+    height: 38px;
+    min-height: 38px;
+    max-height: 38px;
+    padding: 0 0.5rem;
+    font-size: 16px;
+    border: 1px solid #ddd;
+    border-radius: 0.2rem;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+
+
+
+  .vaccination-form .form-group {
+    margin-bottom: 1rem;
+  }
+
+  .add-button {
+    width: 100%;
+    height: 38px;
+    justify-content: center;
+    margin-top: 0.5rem;
+    box-sizing: border-box;
+    font-size: 16px;
   }
 
 
@@ -517,15 +800,11 @@
   .vaccination-table {
     margin-top: 1rem;
   }
-
-
-
-
-  .vaccination-form {
-    display: flex;
-    flex-direction: column;
-  }
 }
+
+
+
+
 
 
 
@@ -536,6 +815,10 @@
   margin-left: 0.25rem;
   font-weight: bold;
 }
+
+
+
+
 
 
 
@@ -557,10 +840,18 @@
 
 
 
+
+
+
+
 .detail-item input[type="date"] {
   position: relative;
   width: 100%;
 }
+
+
+
+
 
 
 
@@ -572,6 +863,10 @@
   transform: translateY(-50%);
   cursor: pointer;
 }
+
+
+
+
 
 
 
@@ -594,8 +889,44 @@
 
 
 
+.form-group select,
+.form-group input[type="date"],
+.form-group input[type="number"] {
+  height: 38px;
+  min-height: 38px;
+  box-sizing: border-box;
+}
 
 
 
 
 
+
+
+
+.vaccination-form .error-message-profile {
+  grid-column: 1;
+  text-align: left;
+  margin-top: 2px;
+  margin-bottom: 0;
+}
+
+
+
+
+.input-error-pet {
+  border: 1px solid #ff4444 !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+
+
+
+.date-input .input-error-pet {
+  border: 1px solid #ff4444 !important;
+  height: 38px !important;
+  min-height: 38px !important;
+}

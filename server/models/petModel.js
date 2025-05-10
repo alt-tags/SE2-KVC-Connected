@@ -118,7 +118,36 @@ class PetModel {
         const [result] = await db.execute("SELECT * FROM pet_info WHERE pet_status = 0");
         return result;
     }
+
+    static async autoArchiveOldPets() {
+    try {
+        // Define the cutoff date: 5 years ago from now
+        const fiveYearsAgo = dayjs().subtract(5, "year");
+
+        // Query the maximum (latest) record_date for each pet from record_info
+        const [visitRows] = await db.query(`
+            SELECT pet_id, MAX(record_date) AS latest_visit
+            FROM record_info
+            GROUP BY pet_id
+        `);
+
+        for (const record of visitRows) {
+            // Only archive if a visit exists and it's older than five years.
+            if (record.latest_visit && dayjs(record.latest_visit).isBefore(fiveYearsAgo)) {
+                await db.execute(
+                    "UPDATE pet_info SET pet_status = 0 WHERE pet_id = ? AND pet_status = 1",
+                    [record.pet_id]
+                );
+                console.log(`Archived pet ${record.pet_id} (last visit: ${record.latest_visit})`);
+            }
+        }
+    } catch (error) {
+        console.error("Error auto-archiving old pets:", error);
+        throw error;
+    }
 }
+}
+
 
 module.exports = PetModel;
 

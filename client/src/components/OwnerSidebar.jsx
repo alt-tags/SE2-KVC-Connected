@@ -51,7 +51,7 @@ export default function OwnerSidebar({ className = "", onMenuItemClick }) {
           onClick={() => handleClick("/patients")}
         >
           <Folder size={24} fill="currentColor" />
-          <span>Patient Directory</span>
+          <span>My Pets</span>
         </Link>
         <Link
           to="/add-pet"
@@ -94,7 +94,7 @@ export default function OwnerSidebar({ className = "", onMenuItemClick }) {
             onClick={() => handleClick("/patients")}
           >
             <Folder size={24} />
-            <span>Patient Directory</span>
+            <span>My Pets</span>
           </Link>
           <Link
             to="/add-pet"

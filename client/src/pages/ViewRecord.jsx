@@ -23,6 +23,7 @@ const ViewRecord = ({ record, onBack, onUpdate }) => {
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
+  const [petName, setPetName] = useState("");
 
   const logout = useCallback(async () => {
     try {
@@ -181,6 +182,38 @@ const ViewRecord = ({ record, onBack, onUpdate }) => {
     };
 
     fetchRecord();
+  }, [pet_id, logout]);
+
+  //revise for pet name's record for..
+  useEffect(() => {
+    const fetchPetName = async () => {
+      try {
+        const response = await fetch(`http://localhost:5000/pets/${pet_id}`, {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (response.status === 401) {
+          console.warn("Session expired (401 Unauthorized). Logging out...");
+          await logout();
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch pet data");
+        }
+
+        const data = await response.json();
+        setPetName(data.name); // Set the pet's name
+      } catch (error) {
+        console.error("Error fetching pet name:", error);
+      }
+    };
+
+    fetchPetName();
   }, [pet_id, logout]);
 
   const validateForm = () => {
@@ -529,7 +562,7 @@ const ViewRecord = ({ record, onBack, onUpdate }) => {
               <ArrowLeft size={24} />
             </button>
             <span>
-              Pet's Record for:{" "}
+              {`${petName}'s record for: `}{" "}
               {!isEditing
                 ? editedRecord.date
                 : formatDateForDisplay(editedRecord.date)}

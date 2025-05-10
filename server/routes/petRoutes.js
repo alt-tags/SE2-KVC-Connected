@@ -272,4 +272,8 @@ router.get("/search-pets", authenticateToken, async (req, res) => {
 
 // route to fetch pet details by pet_id
 router.get("/:pet_id", authenticateToken, authenticate, petController.getPetById);
+
+// Route to trigger auto-archiving of pets whose last visit was over 5 years ago.
+router.put("/auto-archive", authenticateToken, authenticate, petController.autoArchiveOldPets);
+
 module.exports = router;
